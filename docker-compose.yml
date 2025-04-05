@@ -1,0 +1,53 @@
+services:
+  app:
+    build: . # カレントディレクトリのDockerfileを使用 
+    container_name: event_app
+    ports:
+      - "3000:3000" # ホストの3000をコンテナの3000にマッピング (Codespaceが転送)
+    volumes:
+      - .:/usr/src/app # コード変更をコンテナに反映
+      - /usr/src/app/node_modules # node_modulesはマウントしない
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_PORT=${DB_PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
+      - PORT=${PORT}
+      - COOKIE_SECRET=${COOKIE_SECRET}
+      - NODE_ENV=development # 開発環境指定
+    depends_on:
+      - db
+    # command: npm run dev # nodemonを使う場合
+    command: npm start # 通常起動
+
+  db:
+    image: mysql:8.0
+    container_name: event_db
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # 初期化SQLを実行
+    ports:
+      - "3306:3306" # Codespace外から直接接続しない場合は不要な場合も
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: event_phpmyadmin
+    environment:
+      PMA_HOST: db # 接続先DBホスト名 (サービス名)
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: rootpassword # DBのルートパスワード
+    ports:
+      - "8080:80" # ホストの8080をコンテナの80に (Codespaceが転送)
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:

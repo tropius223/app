@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オーガナイザー招待コード入力</title>
+    <link rel="stylesheet" href="/style.css"> </head>
+<body>
+    <div class="container">
+        <h1>オーガナイザー登録</h1>
+        <p>Google 認証ありがとうございます。</p>
+        <p>オーガナイザーとして登録するには、招待コードを入力してください。</p>
+
+        <div id="inviteMessage" class="message hidden"></div>
+
+        <form id="inviteForm">
+            <div>
+                <label for="inviteCode">招待コード:</label>
+                <input type="text" id="inviteCode" name="inviteCode" required>
+            </div>
+            <button type="submit">登録を完了する</button>
+        </form>
+        <p style="margin-top: 15px;"><a href="/login.html">ログインページに戻る</a></p>
+    </div>
+
+    <script>
+        const inviteForm = document.getElementById('inviteForm');
+        const inviteMessage = document.getElementById('inviteMessage');
+
+        inviteForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            inviteMessage.classList.add('hidden'); // メッセージを隠す
+
+            const formData = new FormData(inviteForm);
+            const inviteCode = formData.get('inviteCode');
+
+            try {
+                const response = await fetch('/register/organizer/invite', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ inviteCode: inviteCode }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // 登録成功、指定されたURLにリダイレクト
+                    window.location.href = result.redirectTo || '/organizer.html'; // フォールバック
+                } else {
+                    // エラーメッセージ表示
+                    inviteMessage.textContent = result.message || '登録に失敗しました。';
+                    inviteMessage.className = 'message error'; // エラー表示
+                }
+            } catch (error) {
+                console.error('Invite form submission error:', error);
+                inviteMessage.textContent = 'エラーが発生しました。';
+                inviteMessage.className = 'message error';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1092 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6; /* gray-100 */
+    color: #374151; /* text-gray-700 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+    margin: 0;
+}
+
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2, h3 {
+    font-weight: 700; /* font-bold */
+ }
+ h2.login-tab-title {
+     font-size: 1.25rem; /* text-xl */
+     line-height: 1.75rem;
+     font-weight: 700; /* font-bold */
+     color: #1f2937; /* text-gray-800 */
+     margin-bottom: 0.5rem; /* mb-2 */
+ }
+
+/* --- カードスタイル --- */
+.login-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    width: 100%;
+    max-width: 450px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e5e7eb;
+    text-align: center;
+    box-sizing: border-box;
+}
+  .pwa-prompt-card {
+    display: flex;
+    align-items: center;
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    width: 100%;
+    max-width: 450px;
+    margin-bottom: 1.5rem;
+    box-sizing: border-box;
+  }
+  .pwa-prompt-icon-left, .pwa-prompt-icon-right {
+    flex-shrink: 0;
+    width: 2rem; height: 2rem;
+    color: #3b82f6;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .pwa-prompt-icon-left { margin-right: 1rem; }
+  .pwa-prompt-icon-right { margin-left: 1rem; }
+  .pwa-prompt-text { flex-grow: 1; text-align: left; }
+  .pwa-prompt-text h3 {
+    font-weight: 600; color: #1e40af;
+    margin: 0 0 0.25rem 0; padding: 0; border: none;
+    font-size: 0.9rem;
+  }
+  .pwa-prompt-text p { font-size: 0.8rem; color: #1d4ed8; line-height: 1.4; margin: 0; }
+  
+
+/* --- タブスタイル --- */
+.tab-container {
+    display: flex;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+.tab-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    margin-bottom: -1px;
+    transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    border-radius: 0; /* Override general button style if needed */
+}
+.tab-button:hover {
+    color: #1f2937;
+    background-color: inherit; /* Override general button hover */
+}
+.tab-button.active {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+    background-color: #ffffff; /* Or #e0e7ff; */
+}
+.tab-content {
+    /* display: none; etc... */
+    position: relative; /* ★ 絶対配置の基準にする */
+    padding-bottom: 5rem; /* ★ はみ出す要素分のスペースを確保 (値は調整) */
+}
+.tab-content.active { display: block; }
+
+.login-tab-title {
+    font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;
+    text-align: center; color: #1f2937; padding: 0; border: none;
+  }
+  .login-tab-description {
+    font-size: 0.875rem; color: #6b7280; text-align: center;
+    margin-bottom: 1.5rem;
+  }
+/* Forms */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"],
+textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%; /* Ensure inputs take full width */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+button {
+    padding: 12px 20px;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #4cae4c;
+}
+
+button.secondary {
+    background-color: #f0ad4e;
+}
+button.secondary:hover {
+    background-color: #ec971f;
+}
+
+button.danger {
+    background-color: #d9534f;
+}
+button.danger:hover {
+    background-color: #c9302c;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Event List */
+.event-item {
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    padding: 15px;
+    border-radius: 5px;
+    display: flex; /* Use flexbox for layout */
+    gap: 15px; /* Space between image and text */
+    align-items: flex-start; /* Align items at the top */
+}
+.event-item img.thumbnail {
+    max-width: 100px; /* Adjust thumbnail size */
+    height: auto;
+    border-radius: 4px;
+    object-fit: cover; /* Maintain aspect ratio */
+}
+.event-details {
+    flex-grow: 1; /* Allow text content to take remaining space */
+}
+.event-details p {
+    margin-top: 0.3rem; /* 上マージン (少し詰める) */
+    margin-bottom: 0.3rem; /* 下マージン (少し詰める) */
+    line-height: 1.4; /* 行の高さ (必要なら調整) */
+    font-size: 0.9em; /* 文字サイズ (必要なら調整) */
+}
+.event-details h3 {
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    border-bottom: none;
+}
+.event-actions {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    gap: 10px;
+}
+.event-actions button, .event-actions .share-icons a, .event-actions .share-icons button {
+    padding: 8px 12px;
+    font-size: 14px;
+}
+.share-icons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.share-icons img, .share-icons svg { /* Style icons if using images/svg */
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+#qrCodeContainer img {
+    display: block;
+    margin: 10px auto;
+    max-width: 150px; /* Adjust QR code size */
+}
+
+/* Flyer Page */
+.flyer-container {
+    text-align: center; /* Center align content */
+}
+
+#flyerImage {
+    max-width: 100%; /* Fit width */
+    max-height: 70vh; /* Limit height to 70% of viewport height */
+    display: block; /* Remove extra space below image */
+    margin: 0 auto 20px auto; /* Center horizontally, add bottom margin */
+    object-fit: contain; /* Scale while preserving aspect ratio */
+}
+
+/* Organizer Page - Event Form */
+#addEventFormContainer details {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+#addEventFormContainer summary {
+    padding: 10px;
+    background-color: #f8f8f8;
+    cursor: pointer;
+    font-weight: bold;
+}
+#addEventFormContainer details[open] summary {
+    border-bottom: 1px solid #ddd;
+}
+#addEventForm {
+    padding: 15px;
+}
+
+/* Message/Error Display */
+.message {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    text-align: center;
+}
+.message.success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+.message.error {
+    background-color: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+}
+
+/* Utility */
+.hidden {
+    display: none;
+}
+.text-right {
+    text-align: right;
+}
+.bold {
+    font-weight: bold;
+}
+
+/* Responsive adjustments (Example) */
+@media (max-width: 600px) {
+    .event-item {
+        flex-direction: column; /* Stack image and text vertically */
+        align-items: center; /* Center items */
+    }
+    .event-item img.thumbnail {
+        max-width: 80%; /* Allow image to be wider */
+        margin-bottom: 10px;
+    }
+    .event-actions {
+        justify-content: center; /* Center buttons */
+    }
+    .tab-button {
+        font-size: 14px;
+        padding: 12px 10px;
+    }
+    body {
+        margin: 10px;
+    }
+    .container {
+        padding: 15px;
+    }
+}
+/* QRコード表示用モーダル */
+.modal {
+    /* 基本的なスタイル（表示時に適用） */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex; /* ★インラインスタイルから移動 */
+    justify-content: center; /* ★インラインスタイルから移動 */
+    align-items: center; /* ★インラインスタイルから移動 */
+    /* z-index: 1000; 必要に応じて前面に表示 */
+}
+
+/* hiddenクラスが付いたモーダルは非表示 */
+.modal.hidden {
+    display: none;
+}
+
+/* モーダルの中身のスタイル (既存であれば調整) */
+.modal > div { /* 直下のdiv要素にスタイルを適用する例 */
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.discount-item-card {
+    border: 1px solid #ccc; /* 画像に合わせた枠線 */
+    margin-bottom: -1px; /* 枠線を重ねる */
+    background-color: #fff;
+}
+/* 最初と最後のカードの枠線を調整 */
+.discount-item-card:first-child {
+   border-radius: 5px 5px 0 0;
+}
+.discount-item-card:last-child {
+   border-radius: 0 0 5px 5px;
+   margin-bottom: 0;
+}
+
+
+.discount-card-row {
+    display: flex;
+    border-bottom: 1px solid #ccc; /* 行間の線 */
+}
+.discount-item-card:last-child .discount-card-row:last-child {
+    border-bottom: none; /* 最後の行の下線は消す */
+}
+
+
+.discount-card-label,
+.discount-card-value {
+    padding: 8px 10px;
+    box-sizing: border-box;
+    flex-basis: 50%; /* 基本的に50%幅 */
+    text-align: left;
+}
+
+.discount-card-label {
+    background-color: #f2f2f2; /* ラベルの背景色 */
+    font-weight: bold;
+    border-right: 1px solid #ccc; /* ラベルと値の間の線 */
+    font-size: 0.9em;
+    display: flex;
+    align-items: center; /* 上下中央揃え */
+}
+
+.discount-card-value {
+    display: flex;
+    align-items: center; /* 上下中央揃え */
+}
+.discount-card-value.event-name,
+.discount-card-value.click-discount,
+.discount-card-value.payment-price,
+.discount-card-value.original-price {
+    justify-content: flex-end; /* 右寄せ */
+}
+.discount-card-value.bold {
+    font-weight: bold;
+}
+
+
+/* --- スマホ表示用メディアクエリ (600px以下で適用) --- */
+@media (max-width: 600px) {
+
+    .discount-item-card {
+       /* スマホではカード間のマージンを少し空ける */
+       margin-bottom: 10px;
+       border-radius: 5px; /* 全ての角を丸める */
+    }
+     .discount-item-card:last-child {
+        margin-bottom: 0;
+     }
+
+    .discount-card-row {
+        /* 2x2 グリッドレイアウトに変更 */
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2列 */
+        grid-template-rows: auto auto;    /* 2行 */
+        padding: 0; /* 内側のpaddingをリセット */
+        border-bottom: none; /* 行間の線は不要に */
+    }
+     .discount-item-card:first-child .discount-card-row:first-child {
+         border-radius: 5px 5px 0 0; /* カード上部の角丸 */
+     }
+     .discount-item-card:last-child .discount-card-row:last-child {
+          border-radius: 0 0 5px 5px; /* カード下部の角丸 */
+     }
+
+
+    .discount-card-label,
+    .discount-card-value {
+        flex-basis: auto; /* flex-basis をリセット */
+        border: none; /* 区切り線をリセット */
+        background-color: transparent; /* 背景色リセット */
+        padding: 5px 8px; /* padding調整 */
+        display: block; /* block要素にして折り返すように */
+        min-height: 1.5em; /* 高さを確保 */
+        text-align: left; /* 基本は左寄せ */
+        align-items: initial; /* align-items をリセット */
+        justify-content: initial; /* justify-content をリセット */
+    }
+     .discount-card-label {
+         font-size: 0.8em; /* ラベルの文字を少し小さく */
+         font-weight: normal; /* 太字解除 */
+         color: #555;
+         border-bottom: 1px solid #eee; /* ラベルの下線 */
+         grid-column: span 1; /* 各ラベルは1列分 */
+         margin: 0;
+     }
+      .discount-card-value {
+         grid-column: span 1; /* 各値は1列分 */
+         font-size: 0.95em;
+      }
+
+    /* 画像のレイアウトに合わせて配置 */
+    /* 1行目 */
+    .discount-card-row:nth-child(1) .discount-card-label:nth-child(1) { grid-area: 1 / 1 / 2 / 2; } /* イベント名ラベル */
+    .discount-card-row:nth-child(1) .discount-card-value:nth-child(2) { grid-area: 2 / 1 / 3 / 2; } /* イベント名値 */
+    .discount-card-row:nth-child(1) .discount-card-label:nth-child(3) { grid-area: 1 / 2 / 2 / 3; } /* 支払額ラベル */
+    .discount-card-row:nth-child(1) .discount-card-value:nth-child(4) { grid-area: 2 / 2 / 3 / 3; text-align: right; } /* 支払額値 */
+
+    /* 2行目 */
+    .discount-card-row:nth-child(2) .discount-card-label:nth-child(1) { grid-area: 1 / 1 / 2 / 2; } /* 有効クリック/割引額ラベル */
+    .discount-card-row:nth-child(2) .discount-card-value:nth-child(2) { grid-area: 2 / 1 / 3 / 2; } /* 有効クリック/割引額値 */
+    .discount-card-row:nth-child(2) .discount-card-label:nth-child(3) { grid-area: 1 / 2 / 2 / 3; } /* 元価格ラベル */
+    .discount-card-row:nth-child(2) .discount-card-value:nth-child(4) { grid-area: 2 / 2 / 3 / 3; text-align: right; } /* 元価格値 */
+
+     /* 3行目 */
+     .discount-card-row:nth-child(3) .discount-card-label:nth-child(1) { grid-area: 1 / 1 / 2 / 2; }
+     .discount-card-row:nth-child(3) .discount-card-value:nth-child(2) { grid-area: 2 / 1 / 3 / 2; }
+     .discount-card-row:nth-child(3) .discount-card-label:nth-child(3) { grid-area: 1 / 2 / 2 / 3; }
+     .discount-card-row:nth-child(3) .discount-card-value:nth-child(4) { grid-area: 2 / 2 / 3 / 3; text-align: right; }
+
+     /* 4行目 */
+     .discount-card-row:nth-child(4) .discount-card-label:nth-child(1) { grid-area: 1 / 1 / 2 / 2; }
+     .discount-card-row:nth-child(4) .discount-card-value:nth-child(2) { grid-area: 2 / 1 / 3 / 2; text-align: right; }
+     .discount-card-row:nth-child(4) .discount-card-label:nth-child(3) { display:none; } /* スマホでは不要な要素を隠す例 */
+     .discount-card-row:nth-child(4) .discount-card-value:nth-child(4) { display:none; } /* スマホでは不要な要素を隠す例 */
+
+
+    /* PC用のテーブルは完全に隠す */
+    #discountTable { /* もし古いテーブルが残っていた場合 */
+        display: none;
+    }
+}
+
+
+
+.summary-item-card {
+    border: 1px solid #ccc;
+    margin-bottom: -1px; /* 枠線を重ねる */
+    background-color: #fff;
+}
+.summary-item-card:first-child { border-radius: 5px 5px 0 0; }
+.summary-item-card:last-child { border-radius: 0 0 5px 5px; margin-bottom: 0; }
+
+.summary-card-row {
+    display: flex; /* PCでは横並び */
+    border-bottom: 1px solid #ccc;
+}
+.summary-item-card:last-child .summary-card-row:last-child { border-bottom: none; }
+
+
+.summary-card-label,
+.summary-card-value {
+    padding: 8px 10px;
+    box-sizing: border-box;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    font-size: 0.9em; /* 全体的に少し小さく */
+}
+
+.summary-card-label {
+    background-color: #f8f8f8; /* 少し薄い背景色 */
+    font-weight: bold;
+    border-right: 1px solid #eee; /* 少し薄い線 */
+    flex-basis: 110px; /* ラベルの幅を固定 (例) */
+    flex-shrink: 0; /* 縮まないように */
+}
+
+.summary-card-value {
+    flex-grow: 1; /* 値が残りの幅を取る */
+}
+
+/* PC表示での列ごとの調整 (例) */
+.summary-card-row:nth-child(1) .summary-card-value.event-name { justify-content: flex-end; }
+.summary-card-row:nth-child(1) .summary-card-value.user-name { /* 紹介ユーザー */ }
+.summary-card-row:nth-child(1) .summary-card-value.payment-price { justify-content: flex-end; } /* 支払額 右寄せ */
+.summary-card-row:nth-child(2) .summary-card-value.click-count { /* クリック数 */ }
+.summary-card-row:nth-child(2) .summary-card-value.discount-rate { justify-content: flex-end; } /* 割引率 中央寄せ */
+.summary-card-row:nth-child(2) .summary-card-value.discount-amount { justify-content: flex-end; } /* 割引額 右寄せ */
+
+
+/* --- スマホ表示用メディアクエリ (割引状況サマリー) --- */
+@media (max-width: 600px) { /* ユーザーページと同じブレークポイント */
+
+    .summary-item-card {
+       margin-bottom: 10px;
+       border-radius: 5px;
+       border: 1px solid #ccc;
+       background-color: #fff; /* 背景色をリセット */
+    }
+
+    .summary-card-row {
+        /* 2行 x 3列 グリッドレイアウト */
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr; /* 3列 */
+        grid-template-rows: auto auto;    /* 2行 */
+        padding: 0;
+        border-bottom: none;
+    }
+     /* 1行目と2行目の間に線 */
+     .summary-card-row:first-child {
+        border-bottom: 1px solid #ccc;
+     }
+
+    .summary-card-label,
+    .summary-card-value {
+        flex-basis: auto;
+        border: none;
+        background-color: transparent;
+        padding: 5px 8px;
+        display: block;
+        min-height: 1.5em;
+        text-align: left;
+        align-items: initial;
+        justify-content: initial;
+        font-size: inherit; /* 親要素から継承 */
+    }
+     .summary-card-label {
+         font-size: 0.75em;
+         font-weight: normal;
+         color: #555;
+         border-bottom: 1px solid #eee;
+         grid-column: span 1;
+         margin: 0;
+     }
+      .summary-card-value {
+         grid-column: span 1;
+         font-size: 0.9em;
+      }
+
+    /* --- 1行目 --- */
+    .summary-card-row:nth-child(1) .summary-card-label:nth-child(1) { grid-area: 1 / 1 / 2 / 2; } /* イベント名 ラベル */
+    .summary-card-row:nth-child(1) .summary-card-value:nth-child(2) { grid-area: 2 / 1 / 3 / 2; } /* イベント名 値 */
+    .summary-card-row:nth-child(1) .summary-card-label:nth-child(3) { grid-area: 1 / 2 / 2 / 3; } /* 紹介ユーザー ラベル */
+    .summary-card-row:nth-child(1) .summary-card-value:nth-child(4) { grid-area: 2 / 2 / 3 / 3; } /* 紹介ユーザー 値 */
+    .summary-card-row:nth-child(1) .summary-card-label:nth-child(5) { grid-area: 1 / 3 / 2 / 4; } /* 支払額 ラベル */
+    .summary-card-row:nth-child(1) .summary-card-value:nth-child(6) { grid-area: 2 / 3 / 3 / 4; text-align: right; } /* 支払額 値 */
+
+    /* --- 2行目 --- */
+    .summary-card-row:nth-child(2) .summary-card-label:nth-child(1) { grid-area: 1 / 1 / 2 / 2; } /* クリック数 ラベル */
+    .summary-card-row:nth-child(2) .summary-card-value:nth-child(2) { grid-area: 2 / 1 / 3 / 2; text-align: center;} /* クリック数 値 */
+    .summary-card-row:nth-child(2) .summary-card-label:nth-child(3) { grid-area: 1 / 2 / 2 / 3; } /* 割引率 ラベル */
+    .summary-card-row:nth-child(2) .summary-card-value:nth-child(4) { grid-area: 2 / 2 / 3 / 3; text-align: center;} /* 割引率 値 */
+    .summary-card-row:nth-child(2) .summary-card-label:nth-child(5) { grid-area: 1 / 3 / 2 / 4; } /* 割引額 ラベル */
+    .summary-card-row:nth-child(2) .summary-card-value:nth-child(6) { grid-area: 2 / 3 / 3 / 4; text-align: right; } /* 割引額 値 */
+
+     /* 古いテーブルは非表示 */
+     #discountSummaryTable {
+        display: none;
+     }
+}
+/* --- オーガナイザー イベント一覧テーブル レスポンシブ対応 --- */
+/* (例: 画面幅 768px 以下で適用) */
+@media (max-width: 768px) {
+
+    /* テーブルのヘッダー行 (thead) を非表示に */
+    #organizerEventTable thead {
+        border: none;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+
+    #organizerEventTable tr {
+        /* 各行をカードのように表示 */
+        display: block; /* ブロック要素に変更 */
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        margin-bottom: 15px; /* カード間のスペース */
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    /* テーブル本体の罫線は不要に */
+     #organizerEventTable,
+     #organizerEventTable tbody {
+        border: none;
+     }
+
+
+    #organizerEventTable td {
+        /* セルを縦に積む */
+        display: block; /* ブロック要素に変更 */
+        width: 100%;    /* 幅を100%に */
+        box-sizing: border-box; /* padding を含めて幅計算 */
+        text-align: right; /* 内容を右寄せ */
+        padding: 8px 10px 8px 45%; /* 右側に内容、左側にラベル用の余白 */
+        position: relative; /* ラベルを絶対配置するための基準 */
+        border-bottom: 1px dashed #eee; /* セル間の区切り線 */
+        font-size: 0.9em; /* 文字を少し小さく */
+        min-height: 2.5em; /* 最低限の高さを確保 */
+        display: flex; /* Flexboxを使ってラベルと内容を配置 */
+        align-items: center; /* 上下中央揃え */
+        justify-content: flex-end; /* 内容を右端に */
+    }
+
+     #organizerEventTable tr td:last-child {
+         border-bottom: none; /* 各カードの最後のセルの下線は消す */
+     }
+
+
+    #organizerEventTable td::before {
+        /* data-label の内容をラベルとして表示 */
+        content: attr(data-label); /* data-label属性の値を取得 */
+        position: absolute; /* 絶対配置 */
+        left: 10px;     /* 左端からの位置 */
+        width: 40%;     /* ラベルの幅 */
+        padding-right: 10px; /* ラベルと値の間のスペース */
+        white-space: nowrap; /* ラベルを折り返さない */
+        text-align: left;    /* ラベル自体は左寄せ */
+        font-weight: bold;
+        color: #333;
+        /* 上下中央揃え */
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+     /* ボタンセルの調整 */
+     #organizerEventTable td[data-label="操作:"] {
+         padding-top: 5px;
+         padding-bottom: 5px;
+     }
+     #organizerEventTable td[data-label="操作:"] button {
+         padding: 5px 10px;
+         font-size: 0.9em;
+         /* 右寄せは td の justify-content: flex-end で行われる */
+     }
+
+     /* 特定のセルのテキスト寄せを調整 (必要なら) */
+      #organizerEventTable td[data-label="イベント名:"] {
+          justify-content: flex-start; /* 左寄せ */
+          text-align: left;
+      }
+       #organizerEventTable td[data-label="開催日時:"],
+       #organizerEventTable td[data-label="有効期限:"] {
+          justify-content: flex-start; /* 左寄せ */
+          text-align: left;
+       }
+       #organizerEventTable td[data-label="価格:"] {
+          
+       }
+
+} 
+
+
+.social-login-buttons {
+    margin-top: 20px; /* 上の間隔調整 */
+    margin-bottom: 2rem; /* mb-8 */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.social-link { text-decoration: none; display: block; }
+.social-button {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* デフォルトは中央揃え */
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    box-sizing: border-box;
+    transition: opacity 0.2s ease;
+    color: #FFFFFF;
+    overflow: hidden;
+}
+
+.social-button.left-align { /* 左寄せにするためのクラス（任意） */
+    justify-content: flex-start;
+}
+.social-button:hover { opacity: 0.9; }
+.social-icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    vertical-align: middle;
+    display: inline-block;
+}
+.social-button img.social-icon,
+.social-button svg.social-icon {
+    vertical-align: middle;
+}
+.social-button.google { background-color: #FFFFFF; color: #1F1F1F; border: 1px solid #747775; }
+.social-button.google:hover { background-color: #f9fafb; }
+.social-button.facebook { background-color: #1877F2; color: #FFFFFF; }
+.social-button.facebook .social-icon path { fill: #FFFFFF; }
+
+.social-button.line { background-color: #06C755; color: #FFFFFF; }
+.social-button.line .social-icon path { fill: #FFFFFF; }
+.line-login-link:hover .line-login-button-image {
+    opacity: 0.9; /* 簡単なホバー効果 */
+}
+
+.terms-text { font-size: 0.8rem; text-align: center; color: #6b7280; margin-top: 0.5rem; }
+.terms-text a { color: #3b82f6; text-decoration: underline; }
+.terms-text a:hover { color: #2563eb; }
+
+.divider { position: relative; margin: 2rem 0; } /* my-8 */
+.divider-line { position: absolute; inset: 0; display: flex; align-items: center; }
+.divider-line div { width: 100%; border-top: 1px solid #d1d5db; } /* border-gray-300 */
+.divider-text { position: relative; display: flex; justify-content: center; font-size: 0.875rem; } /* text-sm */
+.divider-text span { padding: 0 0.5rem; background-color: white; color: #6b7280; } /* px-2 bg-white text-gray-500 */
+
+/* --- Flow Diagram スタイル --- */
+.flow-diagram-container {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between; /* 要素間のスペース */
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    position: absolute;   /* 絶対配置 */
+    width: 100%;          /* 親要素より広く */
+    left: 50%;            /* 親要素の左から50%の位置へ */
+    transform: translateX(-50%); /* 要素自身の幅の50%分左へずらす */
+    overflow-x: visible;    /* はみ出しを許可 */
+    box-sizing: border-box; /* paddingを含めて幅計算 */
+}
+
+.flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    /* ★ 縮小を許可し、基本幅は自動、最小幅は0 ★ */
+    flex-shrink: 1;
+    flex-grow: 0; /* 基本的には大きくしない */
+    flex-basis: auto;
+    min-width: 0; /* 最小幅の制限を解除 */
+    /* ★ 左右のパディングを少し確保 ★ */
+    padding: 0 2px;
+    margin-bottom: 0; /* 縦方向のマージンは不要に */
+}
+
+.flow-icon-container {
+    /* ★ アイコンコンテナを少し小さく ★ */
+    width: 2rem; /* 例: 48px -> 40px */
+    height: 2rem;
+    border-radius: 9999px; background-color: #e0e7ff;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 0.25rem; /* テキストとの間隔を少し詰める */
+    flex-shrink: 0; /* アイコン自体は縮まないように */
+}
+.flow-icon-container svg {
+    /* ★ アイコンサイズも少し小さく ★ */
+    width: 1.25rem; /* 例: 24px -> 20px */
+    height: 1.25rem;
+    color: #4f46e5; stroke-width: 2; fill: none; stroke: currentColor;
+}
+
+.flow-step-text {
+    /* ★ テキストサイズを小さく、行間も詰める ★ */
+    font-size: 10px; /* text-xs よりさらに小さく */
+    line-height: 1.2; /* 行間を詰める */
+    font-weight: 500; color: #4b5563;
+    /* ★ 必要なら単語の途中でも改行を許可 (ただし見た目が微妙かも) ★ */
+    /* word-break: break-all; */
+    /* ★ 画面が非常に狭い場合にテキストを非表示にする場合 (任意) ★ */
+    /* display: none; */
+    /* @media (min-width: 360px) { display: block; } */
+}
+
+.flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* ★ 縮小を許可し、基本幅は自動 ★ */
+    flex-shrink: 1;
+    flex-grow: 1; /* ★ 矢印がスペースを埋めるように少し広がることを許可 */
+    flex-basis: auto;
+    color: #9ca3af;
+    margin: 0;
+    padding: 0 3px; /* 左右のパディングを最小限に */
+    height: auto;
+    min-width: 16px; /* 矢印自体の最低幅 */
+}
+.flow-arrow svg {
+    /* ★ 矢印アイコンも小さく ★ */
+    width: 0.8rem;  /* 例: 16px -> 13px */
+    height: 0.8rem;
+    stroke-width: 2; fill: none; stroke: currentColor;
+    flex-shrink: 0; /* SVG自体は縮まない */
+}
+
+
+
+.important-note {
+    display: flex; align-items: center; background-color: #fefce8;
+    border: 1px solid #fef08a; color: #a16207;
+    padding: 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; margin-bottom: 1.5rem;
+    text-align: left;
+  }
+  .important-note svg {
+    width: 1.25rem; height: 1.25rem; margin-right: 0.5rem; flex-shrink: 0;
+    color: #d97706; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round;
+  }
+
+.flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin: 0 0.5rem; /* mx-2 */
+}
+.flow-icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #4f46e5; /* text-indigo-600 */
+    background-color: #e0e7ff; /* bg-indigo-100 */
+    border-radius: 0.5rem; /* rounded-lg */
+    padding: 0.5rem; /* p-2 */
+    margin-bottom: 0.5rem; /* mb-2 */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+}
+.flow-icon-container svg {
+    width: 1.25rem; /* w-5 */
+    height: 1.25rem; /* h-5 */
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.flow-step-text {
+    font-size: 0.75rem; /* text-xs */
+    line-height: 1rem;
+    font-weight: 500; /* font-medium */
+    color: #4b5563; /* text-gray-600 */
+}
+.flow-arrow {
+    color: #9ca3af; /* text-gray-400 */
+    margin: 0.75rem 0.25rem; /* mx-1 and vertical margin */
+    display: none; /* デフォルト非表示 */
+    transform: rotate(90deg); /* スマホでは縦向き */
+}
+.flow-arrow svg {
+    width: 1.5rem; /* w-6 */
+    height: 1.5rem; /* h-6 */
+}
+@media (min-width: 640px) { /* sm: breakpoint */
+    .flow-arrow {
+        display: inline-block; /* PCでは表示 */
+        margin-top: 1.5rem; /* 上下の位置調整 */
+        transform: rotate(0deg); /* PCでは横向き */
+    }
+}
+
+/* --- Important Note スタイル --- */
+.important-note {
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.25rem;
+    font-weight: 500; /* font-medium */
+    color: #92400e; /* text-yellow-800 */
+    background-color: #fef3c7; /* bg-yellow-100 */
+    border: 1px solid #fcd34d; /* border-yellow-300 */
+    border-radius: 0.375rem; /* rounded-md */
+    padding: 0.75rem; /* p-3 */
+    margin-top: 1rem; /* mt-4 */
+    text-align: left;
+    display: flex;
+    align-items: flex-start;
+}
+.important-note svg {
+    margin-right: 0.5rem; /* mr-2 */
+    flex-shrink: 0;
+    width: 1.25rem; /* w-5 */
+    height: 1.25rem; /* h-5 */
+    color: #b45309; /* text-yellow-600 */
+    margin-top: 2px; /* アイコンの垂直位置調整 */
+}
+
+/* --- メッセージ欄のスタイル --- */
+#message { /* 基本スタイル */
+    padding: 1rem; margin-bottom: 1rem; font-size: 0.875rem; border-radius: 0.375rem;
+}
+#message.success { background-color: #d1fae5; color: #065f46; } /* bg-green-100 text-green-800 */
+#message.error { background-color: #fee2e2; color: #991b1b; } /* bg-red-100 text-red-800 */
+.hidden { display: none; } 
+
+.tab-content > p:last-of-type + div[style*="border-top"] {
+   border-top: none !important;
+   padding-top: 0 !important;
+   margin-top: 10px !important; /* 調整 */
+}
+
+/* --- イベントアコーディオン --- */
+.event-accordion-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    background-color: #fff;
+    overflow: hidden; /* スムーズな開閉のため */
+}
+
+.event-summary {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    cursor: pointer;
+    background-color: #f8f8f8;
+    transition: background-color 0.2s ease;
+}
+
+.event-summary:hover {
+    background-color: #eee;
+}
+
+.toggle-icon {
+    margin-right: 10px;
+    font-weight: bold;
+    width: 1em; /* 幅を固定 */
+    text-align: center;
+    transition: transform 0.3s ease; /* アイコン回転アニメーション */
+}
+
+/* 開いているときのアイコン（例: 上向き）*/
+/* .event-summary:not(:has(+ .collapsed)) .toggle-icon {
+    transform: rotate(180deg);
+} */
+/* ↑ :has セレクタは対応ブラウザが限られるため JS でアイコンを直接変更 */
+
+
+.summary-event-name {
+    font-weight: bold;
+    flex-grow: 1; /* イベント名が残りのスペースを取る */
+    margin-right: 15px; /* 日付との間にスペース */
+    overflow: hidden; /* 長い場合に省略 */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.summary-event-date {
+    font-size: 0.9em;
+    color: #555;
+    white-space: nowrap; /* 日付は折り返さない */
+}
+
+.event-full-details {
+    max-height: 1000px; /* 十分な高さを確保 (実際のコンテンツより大きく) */
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out; /* 開閉アニメーション */
+    padding: 15px; /* 開いたときの内部パディング */
+    border-top: 1px solid #eee; /* 境界線 */
+}
+
+.event-full-details.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-top: none; /* 閉じているときは境界線なし */
+}
+
+/* 詳細部分の内部コンテンツ用ラッパー（前の .event-item スタイルを流用可）*/
+.event-item-content {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+/* 既存の .event-item のスタイルは不要になるか、.event-item-content に適用する */
+/* .event-item { ... } */
+
+/* サムネイル、詳細、アクションなどのスタイルは既存のものを流用 */
+.event-item-content img.thumbnail { /* セレクタ変更 */
+    max-width: 100px; height: auto; border-radius: 4px; object-fit: cover;
+}
+.event-item-content .event-details { /* セレクタ変更 */
+    flex-grow: 1;
+}
+.event-item-content .event-details h3 { /* セレクタ変更 */
+    margin: 0 0 10px 0; padding-bottom: 5px; border-bottom: none; font-size: 1.1em;
+}
+.event-item-content .event-actions { /* セレクタ変更 */
+    margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px;
+}
+/* ... 他の関連スタイル ... */
+
+
+/* スマホ表示での調整 (メディアクエリ内) */
+@media (max-width: 600px) {
+    .summary-event-name {
+        /* スマホで名前が長すぎる場合 */
+        /* white-space: normal; */ /* 折り返しを許可 */
+    }
+    .event-item-content {
+        flex-direction: column; /* スマホでは縦積み */
+        align-items: center;
+    }
+    .event-item-content img.thumbnail {
+        max-width: 80%;
+        margin-bottom: 10px;
+    }
+    .event-item-content .event-actions {
+        justify-content: center;
+    }
+     .event-full-details {
+        padding: 10px; /* スマホではパディングを少し減らす */
+     }
+}

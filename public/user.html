@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザーページ - イベント紹介システム</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/lib/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>ゲストコード：<br><span id="userName"></span></h1>
+            <a href="#" id="logoutButton" class="secondary">
+                <img src="https://img.icons8.com/?size=100&id=XWfIX8KKOkup&format=png&color=000000" alt="ログアウト" style="width: 24px; height: 24px;">
+            </a>
+        </div>
+
+
+        <div id="message" class="message hidden"></div>
+
+        <section>
+            <h2>開催予定のイベント</h2>
+            <div id="eventList">
+                <p>イベント情報を読み込み中...</p>
+            </div>
+        </section>
+
+        <section style="margin-top: 30px;">
+            <h2>あなたの割引情報</h2>
+            <div id="discountList" class="discount-list-container">
+                <p>割引情報を読み込み中...</p>
+            </div>
+            </section>
+
+        <div id="qrModal" class="modal hidden">             <div style="background: white; padding: 20px; border-radius: 5px; text-align: center;">
+                 <h3>紹介用QRコード</h3>
+                 <div id="qrCodeContainer"></div>
+                 <button onclick="closeQrModal()">閉じる</button>
+             </div>
+         </div>
+
+    </div>
+
+    <script src="user.js"></script>
+</body>
+</html>

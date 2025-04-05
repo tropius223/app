@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>イベントフライヤー - イベント紹介システム</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/lib/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container flyer-container">
+        <h1 id="eventName">イベント情報</h1>
+
+        <div id="message" class="message hidden"></div>
+        <div id="flyerDisplay">
+            <p>フライヤー情報を読み込み中...</p>
+        </div>
+        <div id="eventDetails" style="margin-top: 20px; text-align: left; margin-bottom: 20px;">
+             </div>
+
+        <div class="flyer-actions" style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid #eee;">
+             <h3>共有する</h3>
+             <div class="share-icons" style="justify-content: center; flex-wrap: wrap;">
+                 <button title="共有" onclick="shareFlyer()">Share</button>
+                 <button title="クリップボードにコピー" onclick="copyFlyerLink(this)">Copy</button>
+                 <button title="QRコード表示" onclick="showFlyerQrCode()">QR</button>
+                 <button title="Twitterで共有" onclick="shareFlyerOnTwitter()">Twitter</button>
+                 <button title="LINEで共有" onclick="shareFlyerOnLine()">LINE</button>
+             </div>
+             <span id="flyerShareMessage" style="display: block; width: 100%; margin-top: 8px; font-size: 0.9em; color: green;"></span>
+        </div>
+        <div style="margin-top: 30px;">
+            <a href="/login.html">
+                <button style="background-color: rgb(247, 13, 13); color: white; border: none; padding: 10px 20px; font-size: 16px; cursor: pointer; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); box-shadow: 0 4px rgba(0, 0, 0, 0.2); border-radius: 5px; transition: all 0.3s ease;"
+                        onmouseover="this.style.boxShadow='0 0 5px red, 0 0 10px red, 0 0 20px red'; this.style.textShadow='0 0 5px red, 0 0 10px red, 0 0 20px red';"
+                        onmouseout="this.style.boxShadow='0 4px rgba(0, 0, 0, 0.2)'; this.style.textShadow='0 1px 2px rgba(0, 0, 0, 0.5)';">
+                    割引はこちら
+                </button>
+            </a>
+        </div>
+
+    </div> <div id="qrModal" class="modal hidden">
+        <div style="background: white; padding: 20px; border-radius: 5px; text-align: center;">
+            <h3>イベント紹介用QRコード</h3>
+            <div id="qrCodeContainer"></div>
+            <button onclick="closeQrModal()">閉じる</button>
+        </div>
+    </div>
+    <script src="flyer.js"></script>
+</body>
+</html>

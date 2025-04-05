@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>オーガナイザーページ - イベント紹介システム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>オーガナイザーダッシュボード (<span id="organizerName"></span>)</h1>
+            <button id="logoutButton" class="secondary">ログアウト</button>
+        </div>
+
+        <div id="message" class="message hidden"></div>
+
+        <section id="addEventFormContainer">
+            <details>
+                <summary>＋ 新規イベントを追加</summary>
+                <form id="addEventForm">
+                    <div>
+                        <label for="eventName">イベント名:</label>
+                        <input type="text" id="eventName" name="event_name" required>
+                    </div>
+                    <div>
+                        <label for="eventDate">開催日時:</label>
+                        <input type="datetime-local" id="eventDate" name="date" required>
+                    </div>
+                     <div>
+                        <label for="eventFlyer">フライヤー画像:</label>
+                        <input type="file" id="eventFlyer" name="flyerImageFile" accept="image/*" required>
+                    </div>
+                    <div>
+                        <label for="eventPrice">通常価格 (円):</label>
+                        <input type="number" id="eventPrice" name="price" step="1" min="0" required>
+                    </div>
+                     <div>
+                        <label for="eventRatePercent">1クリックあたりの割引<span style="color: red; font-weight: bold;">率 (%)</span>:</label>
+                        <input type="number" id="eventRatePercent" name="eventRatePercent" step="0.1" min="0" max="100" required>
+                        <span id="calculatedDiscountYen" style="margin-left: 10px; font-size: 0.9em; color: #555;"></span>
+                    </div>
+                     <div>
+                        <label for="eventMaxDiscountRate">最大割引率 (%):</label>
+                        <input type="number" id="eventMaxDiscountRate" name="max_discount_rate" step="0.1" min="0" max="100" required>
+                    </div>
+                    <div>
+                        <label for="eventExpirate">クリック有効期限:</label>
+                        <input type="datetime-local" id="eventExpirate" name="expirate" required>
+                    </div>
+                    <button type="submit">イベントを追加</button>
+                </form>
+            </details>
+        </section>
+
+        <section>
+            <h2>登録済みイベント一覧</h2>
+            <table id="organizerEventTable">
+                <thead>
+                    <tr>
+                        <th>イベント名</th>
+                        <th>開催日時</th>
+                        <th>価格</th>
+                        <th>有効期限</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="organizerEventTableBody">
+                    <tr><td colspan="5">イベント情報を読み込み中...</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section style="margin-top: 30px;">
+            <h2>割引状況サマリー</h2>
+             <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                 <label for="filterEvent">イベントで絞り込み:</label>
+                 <select id="filterEvent">
+                     <option value="">すべてのイベント</option>
+                     </select>
+                 </div>
+             <div id="discountSummaryList" class="summary-list-container">
+                <p>割引状況を読み込み中...</p>
+            </div>
+            </section>
+
+    </div>
+
+    <script src="organizer.js"></script>
+</body>
+</html>
