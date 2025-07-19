@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <!-- トップページ -->
+    <url>
+        <loc>https://hot-flyer.com/</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- ログインページ -->
+    <url>
+        <loc>https://hot-flyer.com/login.html</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- オーガナイザーログインページ -->
+    <url>
+        <loc>https://hot-flyer.com/organizer_login.html</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <!-- オーガナイザー招待コードページ -->
+    <url>
+        <loc>https://hot-flyer.com/organizer_invite.html</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <!-- ユーザーページ -->
+    <url>
+        <loc>https://hot-flyer.com/user.html</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- オーガナイザーページ -->
+    <url>
+        <loc>https://hot-flyer.com/organizer.html</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+
+    <!-- 利用規約ページ -->
+    <url>
+        <loc>https://hot-flyer.com/terms.html</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+
+    <!-- マニュアルページ -->
+    <url>
+        <loc>https://hot-flyer.com/manual.html</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+
+    <!-- ランディングページ -->
+    <url>
+        <loc>https://hot-flyer.com/lp.html</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+
+    <!-- イベントフライヤーページ -->
+    <url>
+        <loc>https://hot-flyer.com/flyer.html</loc>
+        <lastmod>2025-04-11</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+</urlset>

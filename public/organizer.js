@@ -214,7 +214,8 @@ function displayOrganizerEvents(events) {
             <td data-label="開催日時:">${displayEventDate}</td>
             <td data-label="価格:" class="text-right">¥${Number(event.price).toLocaleString()}</td>
             <td data-label="有効期限:">${displayExpirateDate}</td>
-            <td data-label="操作:">
+            <td data-label="クリック単価:">¥${Number(event.rate_per_click).toLocaleString()}</td>
+            <td data-label="">
                 <button class="danger" onclick="confirmAndDeleteEvent(${event.event_id})">削除</button>
             </td>
         `;
@@ -288,7 +289,7 @@ function displayDiscountSummary(summary) {
                 <div class="summary-card-value payment-price bold">¥${Number(item.payment_price).toLocaleString()}</div>
             </div>
             <div class="summary-card-row">
-                <div class="summary-card-label">クリック数</div>
+                <div class="summary-card-label">拡散数</div>
                 <div class="summary-card-value click-count">${item.click_count} 回</div>
                 <div class="summary-card-label">割引率(%)</div>
                 <div class="summary-card-value discount-rate">${item.discount_rate_calc}%</div>

@@ -338,8 +338,6 @@ function displayDiscounts(discounts) {
             <div class="discount-card-row">
                 <div class="discount-card-label">イベント名</div>
                 <div class="discount-card-value event-name">${discount.event_name}</div>
-            </div>
-            <div class="discount-card-row">
                 <div class="discount-card-label">支払額</div>
                 <div class="discount-card-value payment-price bold">¥${Number(discount.payment_price).toLocaleString()}</div>
             </div>
@@ -348,8 +346,6 @@ function displayDiscounts(discounts) {
                 <div class="discount-card-value click-discount">
                     ${discount.click_count} 回 / ¥${Number(discount.discount_amount).toLocaleString()} (${discount.discount_rate_calc}%)
                 </div>
-            </div>
-            <div class="discount-card-row">
                 <div class="discount-card-label">元価格</div>
                 <div class="discount-card-value original-price">¥${Number(discount.original_price).toLocaleString()}</div>
             </div>

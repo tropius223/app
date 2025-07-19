@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>オーガナイザーページ - イベント紹介システム</title>
+    <title>Hot Flyerオーガナイザーページ </title>
     <link rel="stylesheet" href="style.css">
+    <link rel="canonical" href="https://hot-flyer.com/organizer.html">
 </head>
 <body>
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>オーガナイザーダッシュボード (<span id="organizerName"></span>)</h1>
-            <button id="logoutButton" class="secondary">ログアウト</button>
+            <h1>(<span id="organizerName"></span>)</h1>
+            <a href="#" id="logoutButton" class="secondary">
+                <img src="https://img.icons8.com/?size=100&id=XWfIX8KKOkup&format=png&color=000000" alt="ログアウト" style="width: 24px; height: 24px;">
+            </a>
         </div>
 
         <div id="message" class="message hidden"></div>
@@ -62,7 +65,7 @@
                         <th>開催日時</th>
                         <th>価格</th>
                         <th>有効期限</th>
-                        <th>操作</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody id="organizerEventTableBody">

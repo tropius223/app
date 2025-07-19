@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フライヤー拡散ツール - オーガナイザー向けご利用ガイド</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="canonical" href="https://hot-flyer.com/manual.html">
+    <style>
+
+        
+        /* Interフォントの読み込み */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* スライドセクションの基本スタイル */
+        .slide {
+            min-height: 80vh; /* 各セクションの高さを確保 */
+            padding: 4rem 2rem; /* パディング */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* 垂直方向中央揃え */
+            scroll-snap-align: start; /* スクロールスナップ位置 */
+            border-bottom: 1px solid #e5e7eb; /* セクション間の区切り線 */
+        }
+        .slide:last-child {
+            border-bottom: none; /* 最後のセクションの線は消す */
+        }
+        /* 絵文字とテキストを揃えるためのユーティリティ */
+        .emoji-text {
+            display: inline-flex; /* インラインフレックスで横並び */
+            align-items: center; /* 上下中央揃え */
+            gap: 0.5em; /* 絵文字とテキストの間隔 */
+            line-height: 1.5; /* 行の高さを調整 */
+        }
+        /* グラデーション背景 */
+        .gradient-bg {
+             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        }
+        .gradient-bg-alt {
+             background: linear-gradient(135deg, #fefce8 0%, #fffbeb 100%);
+        }
+        .gradient-bg-green {
+             background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+         .gradient-bg-purple {
+             background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+        }
+        /* FAQのアコーディオン矢印 */
+        details > summary {
+            list-style: none; /* デフォルトのマーカーを消す */
+        }
+        details > summary::-webkit-details-marker {
+            display: none; /* Chrome/Safariのマーカーを消す */
+        }
+        details > summary::marker {
+             display: none; /* Firefoxのマーカーを消す */
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <div class="scroll-snap-y mandatory h-screen overflow-y-scroll">
+
+        <section id="title" class="slide gradient-bg text-center">
+            <div class="max-w-4xl mx-auto">
+                <span class="text-6xl mb-4"></span>
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">フライヤー拡散ツール</h1>
+                <h2 class="text-2xl md:text-3xl font-semibold text-blue-700 mb-6">オーガナイザー向け ご利用ガイド</h2>
+                <p class="text-lg text-gray-600 mb-8">イベントを登録し、参加者の紹介活動による割引をスマートに管理しましょう。</p>
+                <a href="/organizer_login.html" class="inline-block bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 text-lg">
+                    Hot Flyer <span class="inline-block ml-1">➡️</span>
+                </a>
+            </div>
+        </section>
+
+        <section id="intro" class="slide bg-white">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-900 mb-6"><span class="emoji-text">⚙️ はじめに：このシステムでできること</span></h2>
+                <p class="text-lg text-gray-700 mb-4">
+                    このシステムは、イベント主催者（オーガナイザー）がイベント情報を登録し、参加者が生成した紹介リンクの効果測定と、それに応じた割引管理を行うためのWebアプリケーションです。
+                </p>
+                <p class="text-lg text-gray-700 mb-8 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                   <span class="emoji-text">ℹ️ 本システムの役割</span><br>
+                   紹介を通じてより多くの人にイベント情報（フライヤー）を届け、クリック数に応じた割引計算を自動化する<strong class="font-semibold">サポートツール</strong>です。このシステムがフライヤーを届ける範囲を広げ、オーガナイザー様が用意された魅力的なイベント内容やフライヤーが組み合わさることで、より効果的な集客が期待できます。
+                </p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                        <h3 class="text-xl font-semibold text-blue-800 mb-3"><span class="emoji-text">✅ オーガナイザーのメリット</span></h3>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2">
+                            <li>参加者の紹介活動による<strong class="font-semibold">口コミ効果</strong>で集客を促進できます。</li>
+                            <li>紹介リンクのクリック数に応じた<strong class="font-semibold">割引計算を自動化</strong>し、管理の手間を削減します。</li>
+                            <li>どのユーザーがどれだけ紹介してくれたかを<strong class="font-semibold">可視化</strong>できます。</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-100 p-6 rounded-lg border border-gray-200">
+                         <h3 class="text-xl font-semibold text-gray-800 mb-3"><span class="emoji-text">👥 参加者のメリット</span></h3>
+                         <p class="text-gray-700">
+                            イベントを紹介することで、参加費の割引を受けられるインセンティブがあります。
+                         </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="event-management" class="slide bg-white">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8"><span class="emoji-text">📅 主な機能①：イベント管理</span></h2>
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4"><span class="emoji-text">➕ 新規イベントの登録</span></h3>
+                        <p class="text-gray-700 mb-4">以下の情報を入力して、新しいイベントを登録します。</p>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2 bg-gray-50 p-4 rounded-lg border">
+                            <li><strong class="font-semibold"><span class="emoji-text">🏷️ イベント名:</span></strong> イベントのタイトル</li>
+                            <li><strong class="font-semibold"><span class="emoji-text">📅 開催日時:</span></strong> イベントが開催される日時</li>
+                            <li><strong class="font-semibold"><span class="emoji-text">💰 通常価格:</span></strong> 割引前のイベント参加費</li>
+                            <li><strong class="font-semibold"><span class="emoji-text"> 1クリックあたりの割引率(%):</span></strong> 紹介リンク1クリックで割引される割合</li>
+                            <li><strong class="font-semibold"><span class="emoji-text"> 最大割引率(%):</span></strong> 割引の上限割合</li>
+                            <li><strong class="font-semibold"><span class="emoji-text">⏰ クリック有効期限:</span></strong> 紹介リンクのクリックが割引対象となる最終日時</li>
+                            <li><strong class="font-semibold"><span class="emoji-text">🖼️ フライヤー画像:</span></strong> イベントの宣伝画像 (アップロード)</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4"><span class="emoji-text">📋 登録済みイベントの一覧表示</span></h3>
+                        <p class="text-gray-700 mb-4">登録したイベントが一覧で表示されます。主な情報（イベント名、日時、価格など）をすぐに確認できます。</p>
+                        <div class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg">
+                            <p class="font-semibold"><span class="emoji-text">⚠️ 自動非表示について</span></p>
+                            <p class="text-sm">開催終了から <strong class="font-semibold">30日以上経過したイベント</strong>は、一覧から自動的に非表示になります。</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4"><span class="emoji-text">🗑️ イベントの削除</span></h3>
+                         <div class="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg">
+                            <p class="font-semibold"><span class="emoji-text">⚠️ 削除の条件</span></p>
+                            <p class="text-sm">
+                                イベントに関連する<strong class="font-semibold">紹介クリックログが1件もない場合のみ</strong>、削除が可能です。クリックログが存在する場合、割引情報との整合性を保つため削除できません。詳細はFAQをご確認ください。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="summary" class="slide gradient-bg-alt">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8"><span class="emoji-text">📊 主な機能②：割引状況サマリー</span></h2>
+                <p class="text-lg text-gray-700 mb-6">
+                    イベントごと、および紹介を行ったユーザー（エンドユーザー）ごとに、紹介活動による割引状況の詳細を確認できます。
+                </p>
+                <div class="bg-white p-6 rounded-lg shadow-md border mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">確認できる主な情報</h3>
+                    <div class="grid md:grid-cols-2 gap-4 text-gray-700">
+                        <p><span class="emoji-text">🖱️ 有効クリック数</span></p>
+                        <p><span class="emoji-text">　 適用された割引率 (%)</span></p>
+                        <p><span class="emoji-text">💰 割引額</span></p>
+                        <p><span class="emoji-text">💰 割引後の最終支払額</span></p>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                     <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg">
+                        <p class="font-semibold mb-2"><span class="emoji-text">🔍 絞り込み機能</span></p>
+                        <p class="text-sm">
+                            特定の<strong class="font-semibold">イベント名で絞り込んで</strong>サマリーを表示することが可能です。
+                        </p>
+                    </div>
+                     <div class="bg-gray-100 border border-gray-200 text-gray-800 p-4 rounded-lg">
+                        <p class="font-semibold mb-2"><span class="emoji-text">⚠️ 自動非表示について</span></p>
+                        <p class="text-sm">
+                            イベント管理と同様に、開催終了から <strong class="font-semibold">30日以上経過したイベントのサマリー</strong>は表示されなくなります。
+                        </p>
+                    </div>
+                </div>
+                 <div class="mt-6 bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg">
+                    <p class="font-semibold mb-2"><span class="emoji-text">💡 活用ヒント</span></p>
+                    <p class="text-sm">
+                        割引状況サマリーは、イベント当日に参加者が提示した割引額が正しいかを確認する際にも役立ちます。オーガナイザー（スタッフ）側の端末でサマリーを確認し、照合することができます。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="day-of-event" class="slide gradient-bg-green">
+            <div class="max-w-4xl mx-auto">
+                 <h2 class="text-3xl font-bold text-gray-900 mb-8"><span class="emoji-text">🎫 イベント当日の流れ</span></h2>
+                 <p class="text-lg text-gray-700 mb-6">
+                     イベント当日は、以下の流れで参加者の受付と料金の受け取りを行います。
+                 </p>
+                 <div class="bg-white p-6 rounded-lg shadow-md border space-y-4">
+                     <div class="flex items-start gap-4">
+                         <span class="text-3xl pt-1">📱</span>
+                         <div>
+                             <h3 class="text-xl font-semibold text-gray-800 mb-1">1. 参加者の画面を確認</h3>
+                             <p class="text-gray-700">
+                                 受付スタッフは、参加者に自身のスマートフォンなどでユーザーページを表示してもらいます。<br>
+                                 ユーザーページには、そのイベントに対する<strong class="font-semibold">最終的な割引額と支払額</strong>が表示されています。
+                             </p>
+                         </div>
+                     </div>
+                     <div class="flex items-start gap-4">
+                          <span class="text-3xl pt-1">👍</span>
+                         <div>
+                             <h3 class="text-xl font-semibold text-gray-800 mb-1">2. 割引後の料金を受け取る</h3>
+                             <p class="text-gray-700">
+                                 スタッフは画面に表示された<strong class="font-semibold">割引後の最終支払額</strong>を確認し、その金額を参加者から受け取ります。
+                             </p>
+                             <p class="text-sm text-gray-600 mt-2">
+                                 <span class="font-semibold">※ 確認のポイント:</span> 参加者が提示した画面と、オーガナイザー側の「割引状況サマリー」の情報を照合することで、金額の正当性を確認できます。
+                             </p>
+                         </div>
+                     </div>
+                 </div>
+                 <p class="text-center text-gray-600 mt-8 text-sm">
+                    このシステムは割引額の計算と表示を行いますが、実際の金銭の授受は会場での対応となります。
+                 </p>
+            </div>
+        </section>
+
+        <section id="faq" class="slide bg-white">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8"><span class="emoji-text">❓ よくあるご質問 (FAQ)</span></h2>
+                <div class="space-y-4">
+                    <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 割引率やクリック有効期限はイベントごとに設定できますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. はい、可能です。新規イベント登録時に、イベントごとに「1クリックあたりの割引率(%)」「最大割引率(%)」「クリック有効期限」を自由に設定できます。
+                        </p>
+                    </details>
+                     <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 登録したイベントの一覧を確認できますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. はい、できます。オーガナイザーページに、現在登録されていて、開催終了から30日以内のイベントが一覧表示されます。
+                        </p>
+                    </details>
+                     <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 誰がどれくらい紹介してくれたか確認できますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. はい、できます。「割引状況サマリー」画面で、イベント別、および紹介活動を行ったユーザー別に、有効クリック数、適用割引率(%)、割引額、最終支払額を確認できます。
+                        </p>
+                    </details>
+                     <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 特定のイベントの割引状況だけを見られますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. はい、できます。「割引状況サマリー」画面にはイベント名での絞り込み機能がありますので、特定のイベントに関するデータのみを表示させることが可能です。
+                        </p>
+                    </details>
+                     <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. GoogleやFacebookのアカウントでログインできますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. はい、できます。GoogleアカウントまたはFacebookアカウントを使用して、オーガナイザーとしてログイン・新規登録が可能です。（LINEログインは現在準備中です）。<br>
+                            ただし、初回オーガナイザー登録時のみ、ログイン後にシステム管理者から提供された招待コードの入力が必要です。
+                        </p>
+                    </details>
+
+                    <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 登録したイベント情報を後から編集できますか？</span>
+                            <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. いいえ、現在のシステムでは一度登録したイベント情報（イベント名、日時、価格、割引率など）を後から編集する機能はありません。情報を変更したい場合は、一度イベントを削除（条件付き、下記参照）して再登録する必要があります。
+                        </p>
+                    </details>
+                    <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 登録したイベントを削除できますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. いいえ、原則として一度登録したイベントは削除できません。これは、参加者の割引情報との整合性を保つためです。<br>
+                            <strong class="font-semibold">例外として、そのイベントに対する紹介クリックログがまだ1件も記録されていない場合に限り</strong>、削除が可能です。<br>
+                            なお、開催終了から30日以上経過したイベントは自動的に<strong class="font-semibold">非表示</strong>になりますが、データが削除されるわけではありません（非表示になったイベントを後から削除することはできません）。
+                        </p>
+                    </details>
+                    <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 過去のイベントや割引サマリーを再度表示できますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. いいえ、できません。イベントの開催終了から30日が経過すると、該当のイベント情報および割引サマリーは自動的に非表示になり、再度表示することはできません。必要な情報は期間内にご確認ください。
+                        </p>
+                    </details>
+                     <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 参加者の支払い方法を指定・管理できますか？</span>
+                            <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. いいえ、できません。このシステムは紹介クリックに応じた割引額の計算と、最終支払額の表示までを行います。実際の参加費の徴収方法（現金、キャッシュレス決済など）は、イベント当日に会場でオーガナイザー側でご対応ください。
+                        </p>
+                    </details>
+                     <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 割引サマリーのデータをダウンロードできますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. いいえ、現在のシステムでは割引サマリーのデータをCSVなどでダウンロードする機能はありません。画面上でご確認ください。
+                        </p>
+                    </details>
+                     <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. イベントの参加者リストを確認できますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. いいえ、できません。このシステムでは、イベント全体の参加者リストを一覧表示する機能はありません。割引サマリー画面で、紹介活動を行ったユーザー（とそのクリック数・割引額）を確認することは可能です。
+                        </p>
+                    </details>
+                     <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. このシステムでイベントの参加申し込みを受け付けられますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. いいえ、できません。このシステムは、登録されたイベントの紹介リンク発行と、それによる割引管理を行うためのものです。参加申し込みの受付機能はありませんので、別途ご用意ください。
+                        </p>
+                    </details>
+                     <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 複数のオーガナイザーで1つのアカウントを共有できますか？</span>
+                             <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. いいえ、推奨しません。このシステムは個人のソーシャルアカウント（Google, Facebook）と連携してログインします。セキュリティと管理の観点から、オーガナイザーごとに個別のアカウントでご利用ください。
+                        </p>
+                    </details>
+                    <details class="bg-gray-50 p-4 rounded-lg border cursor-pointer group">
+                        <summary class="font-semibold text-lg text-gray-800 flex justify-between items-center">
+                            <span>Q. 初回登録に必要な招待コードを紛失した場合、再発行できますか？</span>
+                            <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">▶️</span>
+                        </summary>
+                        <p class="text-gray-700 mt-3">
+                            A. 招待コードはシステム管理者によって管理されています。紛失した場合は、システム管理者にお問い合わせください。
+                        </p>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <section id="operational-tips" class="slide gradient-bg-purple">
+             <div class="max-w-4xl mx-auto">
+                 <h2 class="text-3xl font-bold text-gray-900 mb-8"><span class="emoji-text">💡 運用上の注意点・ヒント</span></h2>
+                 <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md border">
+                         <h3 class="text-xl font-semibold text-purple-800 mb-3"><span class="emoji-text">🎯 割引率設定の考え方</span></h3>
+                         <p class="text-gray-700">
+                             紹介リンクのクリックは、必ずしもイベントへの<strong class="font-semibold">来場を保証するものではありません</strong>。フライヤーへの関心を示した数と捉え、実際の来場率なども考慮して「1クリックあたりの割引率(%)」や「最大割引率(%)」を設定することが重要です。
+                         </p>
+                         <p class="text-gray-700 mt-2">
+                            このシステムは情報をより多くの人に届けるサポートを行いますが、クリック後に「イベントに行きたい！」と感じてもらうためには、フライヤー画像やイベント内容そのものの<strong class="font-semibold">魅力</strong>が重要になります。 </p>
+                     </div>
+                     <div class="bg-white p-6 rounded-lg shadow-md border">
+                         <h3 class="text-xl font-semibold text-purple-800 mb-3"><span class="emoji-text">⏱️ 割引の締め切り設定</span></h3>
+                         <p class="text-gray-700">
+                             イベント登録時に設定する「クリック有効期限」を、イベント開催日よりも前（例: 開催前日の23:59など）に設定する運用が考えられます。
+                         </p>
+                         <p class="text-gray-700 mt-2">
+                             これにより、イベント開始前に割引額が確定するため、事前に「割引状況サマリー」からユーザーごとの最終支払額をリストアップし、当日の受付スタッフと共有しておくといった準備が可能です。
+                         </p>
+                     </div>
+                     <div class="bg-white p-6 rounded-lg shadow-md border">
+                         <h3 class="text-xl font-semibold text-purple-800 mb-3"><span class="emoji-text">🔗 アカウント連携について</span></h3>
+                         <p class="text-gray-700">
+                             このシステムでは、最初にログインしたソーシャルアカウント（例: Google）とそのメールアドレスがユーザー情報として記録されます。
+                         </p>
+                          <p class="text-gray-700 mt-2">
+                             <strong class="font-semibold">一度Googleアカウントで登録・ログインした場合、後から同じメールアドレスに紐づくFacebookアカウントでログイン（またはその逆）することはできません。</strong> 最初に利用したソーシャルアカウントで継続してログインしてください。
+                         </p>
+                     </div>
+                 </div>
+             </div>
+        </section>
+
+         <section id="next-steps" class="slide gradient-bg text-center">
+            <div class="max-w-4xl mx-auto">
+                <a href="/organizer_login.html" class="inline-block bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 text-lg">
+                    Hot Flyer <span class="inline-block ml-1">➡️</span>
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

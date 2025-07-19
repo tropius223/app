@@ -24,6 +24,7 @@ app.use(cors({
     origin: true, // Codespace環境など、オリジンが変動する場合に対応 (本番では具体的なオリジンを指定推奨)
     credentials: true,
 }));
+app.set('trust proxy', 1);
 // Body Parsers (JSONとURLエンコードされたデータ用)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -161,7 +162,8 @@ try {
         channelSecret: process.env.LINE_CHANNEL_SECRET,
         callbackURL: process.env.LINE_CALLBACK_URL,
         scope: ['profile', 'openid', 'email'], // 要求するスコープ (emailは要審査)
-        passReqToCallback: true
+        passReqToCallback: true,
+        kid: process.env.LINE_KID
       },
       // LINE からプロフィール情報が返ってきたときの処理 (Verify Callback)
       async (req, accessToken, refreshToken, profile, done) => {
@@ -975,12 +977,9 @@ app.get('/api/organizers/:organizerId/discount-summary', authenticateToken, asyn
 
 
 // --- サーバー起動 ---
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`Server running on port ${port}`);
-    console.log(`Access the app via the forwarded URL in Codespace Ports tab.`);
-    console.log(`phpMyAdmin should be available on the forwarded URL for port 8080.`);
-    });
-
+});
 // --- エラーハンドリング (簡易) ---
 // Multerのエラーハンドリングを追加 (任意)
 app.use((err, req, res, next) => {
