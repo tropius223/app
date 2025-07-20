@@ -30,7 +30,7 @@
                         <label for="eventDate">開催日時:</label>
                         <input type="datetime-local" id="eventDate" name="date" required>
                     </div>
-                    <div>
+                     <div>
                         <label for="eventFlyer">フライヤー画像:</label>
                         <input type="file" id="eventFlyer" name="flyerImageFile" accept="image/*" required>
                     </div>
@@ -67,7 +67,7 @@
                     </div>
                     <button type="submit">イベントを追加</button>
                 </form>
-                            </details>
+            </details>
         </section>
 
         <section>
@@ -78,8 +78,8 @@
                         <th>イベント名</th>
                         <th>開催日時</th>
                         <th>価格</th>
-                        <th>有効期限</th>
-                        <th></th>
+                        <th>特典</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody id="organizerEventTableBody">
@@ -89,17 +89,19 @@
         </section>
 
         <section style="margin-top: 30px;">
-            <h2>割引状況サマリー</h2>
-             <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <h2>特典状況サマリー</h2>
+             <!-- ★★★ 絞り込みとダウンロードのセクション ★★★ -->
+             <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                  <label for="filterEvent">イベントで絞り込み:</label>
                  <select id="filterEvent">
                      <option value="">すべてのイベント</option>
-                     </select>
-                 </div>
-             <div id="discountSummaryList" class="summary-list-container">
-                <p>割引状況を読み込み中...</p>
+                 </select>
+                 <button id="openSheetButton" disabled>スプレッドシートで開く</button>
+             </div>
+             <div id="rewardSummaryList" class="summary-list-container">
+                <p>特典状況を読み込み中...</p>
             </div>
-            </section>
+        </section>
 
     </div>
 

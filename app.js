@@ -280,6 +280,85 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+app.get('/api/organizers/:organizerId/reward-summary/gsheet-url', authenticateToken, async (req, res) => {
+    const targetOrganizerId = parseInt(req.params.organizerId, 10);
+    if (req.user.type !== 'organizer' || req.user.id !== targetOrganizerId) {
+        return res.status(403).json({ message: 'アクセス権限がありません' });
+    }
+
+    const { event_id } = req.query;
+    if (!event_id) {
+        return res.status(400).json({ message: 'イベントIDが指定されていません。' });
+    }
+
+    try {
+        // 1. イベント情報を取得 (価格と最大割引率も)
+        const [eventRows] = await pool.query(
+            'SELECT event_name, price, max_rewards, reward_type, max_discount_rate FROM events WHERE event_id = ? AND organizer_id = ?',
+            [event_id, targetOrganizerId]
+        );
+        if (eventRows.length === 0) {
+            return res.status(404).json({ message: '指定されたイベントが見つからないか、アクセス権限がありません。' });
+        }
+        const event = eventRows[0];
+
+        // 2. 特典サマリーデータを取得
+        const sql = `
+            SELECT u.user_name, ur.reward_type, ur.reward_value, ur.quantity, ur.is_claimed
+            FROM user_rewards ur
+            JOIN users u ON ur.user_id = u.user_id
+            WHERE ur.event_id = ? ORDER BY u.user_name ASC`;
+        const [summaryRows] = await pool.query(sql, [event_id]);
+
+        // 3. スプレッドシート用のCSV文字列を生成
+        const manualLine = '入場者が画面上で交換ボタンを押したことを目視で確認してください。';
+        let headers = ['紹介ユーザー名', '特典タイプ', '特典内容', '数量', '状態'];
+        
+        // 特典タイプが'discount'の場合、計算用の列を追加
+        if (event.reward_type === 'discount') {
+            headers.push('通常価格', '最大割引率(%)', '支払金額(計算式)');
+        }
+
+        const dataRows = summaryRows.map((row, index) => {
+            const status = row.is_claimed ? '交換済み' : '未交換';
+            const rowNum = index + 3; // スプレッドシートの行番号 (マニュアル+ヘッダーの分)
+            
+            let rowData = [
+                row.user_name,
+                row.reward_type,
+                row.reward_value,
+                row.quantity,
+                status
+            ];
+
+            if (row.reward_type === 'discount') {
+                // スプレッドシートの計算式を生成
+                // =F2-MIN(F2*(C2/100)*D2, F2*(G2/100))
+                // 意味: 通常価格 - MIN( (通常価格 * 割引率 * 数量), (通常価格 * 最大割引率) )
+                const formula = `=F${rowNum}-MIN(F${rowNum}*(C${rowNum}/100)*D${rowNum}, F${rowNum}*(${event.max_discount_rate}/100))`;
+                rowData.push(
+                    event.price,
+                    event.max_discount_rate,
+                    formula
+                );
+            }
+            return rowData.join(',');
+        });
+
+        const csvContent = [manualLine, headers.join(','), ...dataRows].join('\n');
+
+        // 4. Googleスプレッドシート用のURLを生成
+        const sheetUrl = `https://docs.google.com/spreadsheets/d/new?data=${encodeURIComponent(csvContent)}`;
+
+        res.json({ sheetUrl });
+
+    } catch (error) {
+        console.error('Error generating Google Sheet URL:', error);
+        res.status(500).json({ message: 'スプレッドシートURLの生成中にエラーが発生しました。' });
+    }
+});
+
+
 // --- 認証関連 ---
 // (既存の認証開始ルート、コールバック、共通処理は変更なしのため省略)
 app.get('/auth/google/user', (req, res, next) => { req.session.authType = 'user'; passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next); });
