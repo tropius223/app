@@ -84,3 +84,6 @@ Thumbs.db
 # Build output (if applicable)
 dist/
 build/
+
+# Google API Credentials
+credentials.json
