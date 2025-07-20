@@ -1,4 +1,4 @@
-// organizer.js (CSVダウンロード機能追加版)
+// organizer.js (スプレッドシート連携修正版)
 
 // --- グローバル変数定義 ---
 let currentOrganizerId = null;
@@ -9,7 +9,7 @@ let rewardSummaryListDiv = null;
 let logoutButton = null;
 let messageDiv = null;
 let filterEventSelect = null;
-let downloadCsvButton = null; // ★ ボタン用の変数を追加
+let openSheetButton = null; // スプレッドシートボタン用の変数
 
 // 特典フォーム用の要素
 let rewardTypeSelect = null;
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutButton = document.getElementById('logoutButton');
     messageDiv = document.getElementById('message');
     filterEventSelect = document.getElementById('filterEvent');
-    downloadCsvButton = document.getElementById('downloadCsvButton'); // ★ ボタンを取得
+    openSheetButton = document.getElementById('openSheetButton'); // HTMLのIDと一致させる
 
     rewardTypeSelect = document.getElementById('rewardType');
     rewardValueLabel = document.getElementById('rewardValueLabel');
@@ -44,45 +44,63 @@ document.addEventListener('DOMContentLoaded', () => {
         handleRewardTypeChange();
     }
     if (filterEventSelect) {
-        // ★ 絞り込みセレクトの変更イベントを修正
         filterEventSelect.addEventListener('change', () => {
             loadRewardSummary();
-            // 選択状態に応じてダウンロードボタンの有効/無効を切り替える
-            if (downloadCsvButton) {
-                downloadCsvButton.disabled = !filterEventSelect.value;
+            // イベント選択に応じてボタンの有効/無効を切り替え
+            if (openSheetButton) {
+                openSheetButton.disabled = !filterEventSelect.value;
             }
         });
     }
-    // ★ ダウンロードボタンのクリックイベントを追加
-    if (downloadCsvButton) {
-        downloadCsvButton.addEventListener('click', handleDownloadCsv);
+    // スプレッドシートボタンのクリックイベント
+    if (openSheetButton) {
+        openSheetButton.addEventListener('click', handleOpenSheet);
     }
 
     checkAuthAndLoadData();
 });
 
 // --- 関数定義 ---
-// (showMessage, hideMessage, handleRewardTypeChange, checkAuthAndLoadData, loadOrganizerName, loadOrganizerEvents, displayOrganizerEvents, populateEventFilter, loadRewardSummary, displayRewardSummary, handleAddEventSubmit, confirmAndDeleteEvent, deleteEvent, handleLogout は変更なし)
-// (変更がないため、ここでは省略します)
 
 /**
- * [新規] CSVダウンロード処理
+ * スプレッドシートで開く処理
  */
-function handleDownloadCsv() {
+async function handleOpenSheet() {
     if (!filterEventSelect || !filterEventSelect.value) {
-        showMessage('CSVをダウンロードするには、まずイベントを選択してください。');
+        showMessage('スプレッドシートで開くには、まずイベントを選択してください。');
         setTimeout(hideMessage, 3000);
         return;
     }
 
     const eventId = filterEventSelect.value;
-    const downloadUrl = `/api/organizers/${currentOrganizerId}/reward-summary/csv?event_id=${eventId}`;
+    const apiUrl = `/api/organizers/${currentOrganizerId}/reward-summary/gsheet-url?event_id=${eventId}`;
 
-    // ブラウザに直接URLを叩かせてダウンロードを開始させる
-    window.location.href = downloadUrl;
+    // ボタンを一時的に無効化し、ローディング表示
+    openSheetButton.disabled = true;
+    openSheetButton.textContent = 'URL生成中...';
+
+    try {
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        if (response.ok) {
+            // 新しいタブでGoogleスプレッドシートを開く
+            window.open(data.sheetUrl, '_blank');
+        } else {
+            throw new Error(data.message || 'URLの生成に失敗しました。');
+        }
+    } catch (error) {
+        console.error('Error fetching spreadsheet URL:', error);
+        showMessage(error.message);
+        setTimeout(hideMessage, 5000);
+    } finally {
+        // ボタンの状態を元に戻す
+        openSheetButton.disabled = false;
+        openSheetButton.textContent = 'スプレッドシートで開く';
+    }
 }
 
-// (以下、変更のない関数が続きます)
+// (以下、変更のない他の関数)
 function showMessage(text, type = 'error') {
     if (!messageDiv) return;
     messageDiv.textContent = text;

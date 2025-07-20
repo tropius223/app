@@ -13,6 +13,7 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const LineStrategy = require('passport-line').Strategy;
+const { google } = require('googleapis');
 
 // --- Express アプリケーションの初期化 ---
 const app = express();
@@ -292,75 +293,97 @@ app.get('/api/organizers/:organizerId/reward-summary/gsheet-url', authenticateTo
     }
 
     try {
-        // 1. イベント情報を取得 (価格と最大割引率も)
+        // --- Google API 認証 ---
+        const auth = new google.auth.GoogleAuth({
+            keyFile: path.join(__dirname, 'credentials.json'),
+            scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file'],
+        });
+        const sheets = google.sheets({ version: 'v4', auth });
+        const drive = google.drive({ version: 'v3', auth });
+
+        // --- データベースからデータを取得 ---
         const [eventRows] = await pool.query(
-            'SELECT event_name, price, max_rewards, reward_type, max_discount_rate FROM events WHERE event_id = ? AND organizer_id = ?',
+            'SELECT event_name, price, reward_type FROM events WHERE event_id = ? AND organizer_id = ?',
             [event_id, targetOrganizerId]
         );
         if (eventRows.length === 0) {
-            return res.status(404).json({ message: '指定されたイベントが見つからないか、アクセス権限がありません。' });
+            return res.status(404).json({ message: 'イベントが見つからないか、アクセス権限がありません。' });
         }
         const event = eventRows[0];
 
-        // 2. 特典サマリーデータを取得
         const sql = `
             SELECT u.user_name, ur.reward_type, ur.reward_value, ur.quantity, ur.is_claimed
-            FROM user_rewards ur
-            JOIN users u ON ur.user_id = u.user_id
+            FROM user_rewards ur JOIN users u ON ur.user_id = u.user_id
             WHERE ur.event_id = ? ORDER BY u.user_name ASC`;
         const [summaryRows] = await pool.query(sql, [event_id]);
 
-        // 3. スプレッドシート用のCSV文字列を生成
+        // --- スプレッドシート用のデータ整形 ---
         const manualLine = '入場者が画面上で交換ボタンを押したことを目視で確認してください。';
         let headers = ['紹介ユーザー名', '特典タイプ', '特典内容', '数量', '状態'];
-        
-        // 特典タイプが'discount'の場合、計算用の列を追加
         if (event.reward_type === 'discount') {
-            headers.push('通常価格', '最大割引率(%)', '支払金額(計算式)');
+            headers.push('通常価格', '支払金額(計算式)');
         }
 
-        const dataRows = summaryRows.map((row, index) => {
+        const dataForSheet = summaryRows.map((row, index) => {
             const status = row.is_claimed ? '交換済み' : '未交換';
-            const rowNum = index + 3; // スプレッドシートの行番号 (マニュアル+ヘッダーの分)
-            
-            let rowData = [
-                row.user_name,
-                row.reward_type,
-                row.reward_value,
-                row.quantity,
-                status
-            ];
-
+            const rowNum = index + 3;
+            let rowData = [row.user_name, row.reward_type, row.reward_value, row.quantity, status];
             if (row.reward_type === 'discount') {
-                // スプレッドシートの計算式を生成
-                // =F2-MIN(F2*(C2/100)*D2, F2*(G2/100))
-                // 意味: 通常価格 - MIN( (通常価格 * 割引率 * 数量), (通常価格 * 最大割引率) )
-                const formula = `=F${rowNum}-MIN(F${rowNum}*(C${rowNum}/100)*D${rowNum}, F${rowNum}*(${event.max_discount_rate}/100))`;
-                rowData.push(
-                    event.price,
-                    event.max_discount_rate,
-                    formula
-                );
+                const formula = `=F${rowNum}-(F${rowNum}*(C${rowNum}/100)*D${rowNum})`;
+                rowData.push(event.price, { formulaValue: formula });
             }
-            return rowData.join(',');
+            return { values: rowData.map(cell => (typeof cell === 'object' && cell.formulaValue) ? { userEnteredValue: { formulaValue: cell.formulaValue } } : { userEnteredValue: { stringValue: String(cell) } }) };
         });
 
-        const csvContent = [manualLine, headers.join(','), ...dataRows].join('\n');
+        // --- Google Sheets API 実行 ---
+        // 1. 新しいスプレッドシートを作成
+        const spreadsheet = await sheets.spreadsheets.create({
+            resource: { properties: { title: `${event.event_name} 特典サマリー` } },
+            fields: 'spreadsheetId,spreadsheetUrl',
+        });
+        const spreadsheetId = spreadsheet.data.spreadsheetId;
+        const spreadsheetUrl = spreadsheet.data.spreadsheetUrl;
 
-        // 4. Googleスプレッドシート用のURLを生成
-        const sheetUrl = `https://docs.google.com/spreadsheets/d/new?data=${encodeURIComponent(csvContent)}`;
+        // 2. ★★★ 権限を「リンクを知っている全員が閲覧可」に変更 ★★★
+        await drive.permissions.create({
+            fileId: spreadsheetId,
+            requestBody: {
+                role: 'reader',
+                type: 'anyone', // 'user'から'anyone'に変更
+            },
+        });
+        
+        // 3. 作成したシートを指定のDriveフォルダに移動
+        await drive.files.update({
+            fileId: spreadsheetId,
+            addParents: process.env.GOOGLE_DRIVE_FOLDER_ID,
+            removeParents: 'root',
+            fields: 'id, parents',
+        });
+        
+        // 4. データをシートに書き込み
+        await sheets.spreadsheets.values.batchUpdate({
+            spreadsheetId,
+            resource: {
+                data: [
+                    { range: 'A1', values: [[manualLine]] },
+                    { range: 'A2', values: [headers] },
+                    { range: 'A3', values: dataForSheet.map(r => r.values.map(c => c.userEnteredValue.formulaValue || c.userEnteredValue.stringValue)) }
+                ],
+                valueInputOption: 'USER_ENTERED'
+            }
+        });
 
-        res.json({ sheetUrl });
+        res.json({ sheetUrl: spreadsheetUrl });
 
     } catch (error) {
-        console.error('Error generating Google Sheet URL:', error);
-        res.status(500).json({ message: 'スプレッドシートURLの生成中にエラーが発生しました。' });
+        console.error('Error with Google Sheets API:', error);
+        res.status(500).json({ message: 'スプレッドシートの作成中にエラーが発生しました。' });
     }
 });
 
 
 // --- 認証関連 ---
-// (既存の認証開始ルート、コールバック、共通処理は変更なしのため省略)
 app.get('/auth/google/user', (req, res, next) => { req.session.authType = 'user'; passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next); });
 app.get('/auth/google/organizer', (req, res, next) => { req.session.authType = 'organizer'; passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next); });
 app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login.html?error=google_auth_failed', session: false }), (req, res) => { handleSocialAuthCallback(req, res); });
