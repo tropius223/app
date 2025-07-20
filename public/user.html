@@ -27,14 +27,17 @@
             </div>
         </section>
 
+        <!-- [修正] 割引情報セクションを特典一覧セクションに変更 -->
         <section style="margin-top: 30px;">
-            <h2 class="wave-animation">あなたの割引情報</h2>
-            <div id="discountList" class="discount-list-container">
-                <p>割引情報を読み込み中...</p>
+            <h2 class="wave-animation">あなたの特典一覧</h2>
+            <!-- [修正] IDを discountList から rewardList に変更 -->
+            <div id="rewardList" class="discount-list-container">
+                <p>特典情報を読み込み中...</p>
             </div>
-            </section>
+        </section>
 
-        <div id="qrModal" class="modal hidden">             <div style="background: white; padding: 20px; border-radius: 5px; text-align: center;">
+        <div id="qrModal" class="modal hidden">
+             <div style="background: white; padding: 20px; border-radius: 5px; text-align: center;">
                  <h3>紹介用QRコード</h3>
                  <div id="qrCodeContainer"></div>
                  <button onclick="closeQrModal()">閉じる</button>

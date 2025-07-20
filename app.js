@@ -19,18 +19,14 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // --- ミドルウェア設定 ---
-// CORS設定
 app.use(cors({
-    origin: true, // Codespace環境など、オリジンが変動する場合に対応 (本番では具体的なオリジンを指定推奨)
+    origin: true,
     credentials: true,
 }));
 app.set('trust proxy', 1);
-// Body Parsers (JSONとURLエンコードされたデータ用)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Cookie Parser
 app.use(cookieParser(process.env.COOKIE_SECRET));
-// Session 設定 (Passport 認証フロー中の情報保持に使用)
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -39,13 +35,13 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: 'Lax',
-    maxAge: 60 * 60 * 1000 // 1時間
+    maxAge: 60 * 60 * 1000
   }
 }));
-// Passport 初期化
 app.use(passport.initialize());
 
 // --- Passport Strategy 設定 ---
+// (既存のPassport設定は変更なしのため、ここでは省略します。元のコードをそのまま使用してください)
 try {
     // Google Strategy
     passport.use(new GoogleStrategy({
@@ -161,16 +157,14 @@ try {
         channelID: process.env.LINE_CHANNEL_ID,
         channelSecret: process.env.LINE_CHANNEL_SECRET,
         callbackURL: process.env.LINE_CALLBACK_URL,
-        scope: ['profile', 'openid', 'email'], // 要求するスコープ (emailは要審査)
+        scope: ['profile', 'openid', 'email'],
         passReqToCallback: true,
         kid: process.env.LINE_KID
       },
-      // LINE からプロフィール情報が返ってきたときの処理 (Verify Callback)
       async (req, accessToken, refreshToken, profile, done) => {
         console.log('LINE Profile Received:', profile);
-        const lineId = profile.id; // LINE User ID
-        // ★ LINEはemailを返さない、または要申請なので注意 ★
-        const email = profile.email || null; // emailがあれば使う、なければnull
+        const lineId = profile.id;
+        const email = profile.email || null;
         const displayName = profile.displayName;
 
         const intendedType = req.session.authType;
@@ -179,13 +173,11 @@ try {
 
         try {
             let user = null;
-             // --- 既存アカウントチェック (LINE ID) ---
             let [organizers] = await pool.query('SELECT organizer_id as id FROM organizers WHERE social_id = ?', [lineId]);
             if (organizers.length > 0) { user = { id: organizers[0].id, type: 'organizer' }; req.session.authType = null; return done(null, user); }
             let [users] = await pool.query('SELECT user_id as id FROM users WHERE social_id = ?', [lineId]);
             if (users.length > 0) { user = { id: users[0].id, type: 'user' }; req.session.authType = null; return done(null, user); }
 
-            // --- メールでの紐付けチェック (Emailが取得できた場合のみ) ---
             if (email) {
                 console.log(`LINE ID not found, checking by email: ${email}`);
                 [organizers] = await pool.query('SELECT organizer_id as id, social_id FROM organizers WHERE mail = ?', [email]);
@@ -204,23 +196,16 @@ try {
                 }
             } else {
                 console.log("Email not available from LINE profile, skipping email check for linking.");
-                // Emailがない場合、メールでの紐付けはできない
-                // 新規登録に進むか、エラーにするか (今回は新規登録に進む)
             }
 
-            // --- 新規登録処理 ---
             if (!email && intendedType === 'organizer') {
-                // オーガナイザー登録にはEmailを必須とする場合（例）
-                // またはEmailなしでも登録を許可するならこのチェックは不要
                 req.session.authType = null;
                 return done(new Error('オーガナイザー登録にはメールアドレスが必要です。LINEアカウントにメールアドレスを登録・連携してください。'), null);
             }
             if (!email && intendedType === 'user') {
-                 // ユーザー登録にもEmailを必須とする場合（例）
                  req.session.authType = null;
                  return done(new Error('ユーザー登録にはメールアドレスが必要です。LINEアカウントにメールアドレスを登録・連携してください。'), null);
              }
-             // ★ 上記 Email 必須チェックが不要な場合は、以下の登録処理を実行 ★
 
             if (intendedType === 'user') {
                 console.log('Creating new user with LINE profile (email may be null)');
@@ -228,13 +213,13 @@ try {
                 user = { id: newUserResult.insertId, type: 'user' }; req.session.authType = null; return done(null, user);
             } else if (intendedType === 'organizer') {
                 console.log('New organizer registration attempt via LINE (email may be null), redirecting to invite code page');
-                req.session.pendingLineProfile = { lineId, email, displayName }; // LINE ID を保存
+                req.session.pendingLineProfile = { lineId, email, displayName };
                 req.session.authType = null; return done(null, { type: 'pending_organizer' });
             } else { req.session.authType = null; return done(new Error('認証プロセスエラー: ログインタイプ不明'), null); }
 
-        } catch (err) { // エラー処理
+        } catch (err) {
              console.error('Error in LINE Strategy verify callback:', err);
-             req.session.authType = null; req.session.pendingLineProfile = null; // LINE用セッションクリア
+             req.session.authType = null; req.session.pendingLineProfile = null;
              return done(err, null);
         }
       }
@@ -268,7 +253,7 @@ try {
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0,
-        dateStrings: true // ★ 日付を文字列で取得
+        dateStrings: true
     });
     console.log('DB pool created.');
 } catch (dbError) {
@@ -291,30 +276,22 @@ console.log('JWT middleware defined.');
 // --- ルーティング ---
 console.log('Defining routes...');
 
-// ルート - ログインページを表示
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // --- 認証関連 ---
-// Google 認証開始
+// (既存の認証開始ルート、コールバック、共通処理は変更なしのため省略)
 app.get('/auth/google/user', (req, res, next) => { req.session.authType = 'user'; passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next); });
 app.get('/auth/google/organizer', (req, res, next) => { req.session.authType = 'organizer'; passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next); });
-// Google コールバック
 app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login.html?error=google_auth_failed', session: false }), (req, res) => { handleSocialAuthCallback(req, res); });
-
-// Facebook 認証開始
 app.get('/auth/facebook/user', (req, res, next) => { req.session.authType = 'user'; passport.authenticate('facebook', { scope: ['email', 'public_profile'] })(req, res, next); });
 app.get('/auth/facebook/organizer', (req, res, next) => { req.session.authType = 'organizer'; passport.authenticate('facebook', { scope: ['email', 'public_profile'] })(req, res, next); });
-// Facebook コールバック
 app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login.html?error=facebook_auth_failed', session: false }), (req, res) => { handleSocialAuthCallback(req, res); });
-
-// LINE 認証開始 (ユーザーとオーガナイザーで分ける)
 app.get('/auth/line/user', (req, res, next) => {
     req.session.authType = 'user';
-    // state パラメータを追加して CSRF 対策 (値はセッションにも保存して後で検証するのが望ましい)
-    const state = Math.random().toString(36).substring(7); // 簡単なランダム文字列
-    req.session.lineAuthState = state; // セッションに保存
+    const state = Math.random().toString(36).substring(7);
+    req.session.lineAuthState = state;
     passport.authenticate('line', { scope: ['profile', 'openid', 'email'], state: state })(req, res, next);
   });
   app.get('/auth/line/organizer', (req, res, next) => {
@@ -323,33 +300,28 @@ app.get('/auth/line/user', (req, res, next) => {
     req.session.lineAuthState = state;
     passport.authenticate('line', { scope: ['profile', 'openid', 'email'], state: state })(req, res, next);
   });
- 
-// ★★★ LINE 認証後のコールバックルート ★★★
-app.get('/auth/line/callback', 
-    (req, res, next) => { 
+app.get('/auth/line/callback',
+    (req, res, next) => {
       if (!req.query.state || req.query.state !== req.session.lineAuthState) {
           console.error('Invalid state parameter in LINE callback.');
           return res.redirect('/login.html?error=invalid_state');
-      }; 
-      next(); 
-    }, 
-    passport.authenticate('line', { 
-      failureRedirect: '/login.html?error=line_auth_failed', 
+      };
+      next();
+    },
+    passport.authenticate('line', {
+      failureRedirect: '/login.html?error=line_auth_failed',
       session: false,
-      callbackURL: process.env.LINE_CALLBACK_URL 
-    }), 
+      callbackURL: process.env.LINE_CALLBACK_URL
+    }),
     (req, res) => {
     handleSocialAuthCallback(req, res);
 }
   );
-
-// ソーシャル認証コールバック共通処理
 function handleSocialAuthCallback(req, res) {
     console.log('Social Auth callback processing, req.user:', req.user);
 
     if (req.user && req.user.type === 'pending_organizer') {
-        // Google/Facebookのプロフィールがセッションにあるか確認
-        if (req.session.pendingGoogleProfile || req.session.pendingFacebookProfile) {
+        if (req.session.pendingGoogleProfile || req.session.pendingFacebookProfile || req.session.pendingLineProfile) {
            console.log('Redirecting to organizer invite code page');
            return res.redirect('/register/organizer/invite');
         } else {
@@ -378,19 +350,14 @@ function handleSocialAuthCallback(req, res) {
     console.log(`Redirecting authenticated user to ${redirectUrl}`);
     res.redirect(redirectUrl);
 }
-
-// 招待コード入力ページ表示 (GET)
 app.get('/register/organizer/invite', (req, res) => {
-    if (!req.session.pendingGoogleProfile && !req.session.pendingFacebookProfile) {
+    if (!req.session.pendingGoogleProfile && !req.session.pendingFacebookProfile && !req.session.pendingLineProfile) {
         console.log('Access to invite page without pending profile.');
         return res.redirect('/login.html?error=session_expired');
     }
     res.sendFile(path.join(__dirname, 'public', 'organizer_invite.html'));
 });
-
-// 招待コード検証とオーガナイザー登録 (POST)
 app.post('/register/organizer/invite', async (req, res) => {
-    // ★ Google / Facebook / LINE の保留中プロフィールを取得 ★
     const pendingProfile = req.session.pendingGoogleProfile || req.session.pendingFacebookProfile || req.session.pendingLineProfile;
 
     if (!pendingProfile) { return res.status(400).json({ message: 'セッション情報が見つかりません。' }); }
@@ -400,7 +367,6 @@ app.post('/register/organizer/invite', async (req, res) => {
 
     if (!inviteCode || inviteCode !== correctInviteCode) { return res.status(400).json({ message: '招待コードが正しくありません。' }); }
 
-    // ★ socialId を Google/Facebook/LINE から取得 ★
     const socialId = pendingProfile.googleId || pendingProfile.facebookId || pendingProfile.lineId;
     const email = pendingProfile.email;
     const displayName = pendingProfile.displayName;
@@ -441,29 +407,16 @@ app.post('/register/organizer/invite', async (req, res) => {
         res.status(500).json({ message: 'オーガナイザー登録中にサーバーエラーが発生しました。' });
     }
 });
-
-// ログアウト API
 app.post('/api/logout', (req, res) => {
-    res.clearCookie('token'); // Cookieからトークンを削除
+    res.clearCookie('token');
     res.json({ message: 'ログアウトしました' });
 });
-
-// 認証状態確認 API
 app.get('/api/auth/status', authenticateToken, (req, res) => {
-    // authenticateTokenミドルウェアが成功すれば、ユーザーは認証済み
     res.json({ isAuthenticated: true, user: req.user });
 });
 
-
 // --- ユーザー関連 API ---
-// ユーザー情報取得 API (特定のユーザー)
 app.get('/api/users/:userId', authenticateToken, async (req, res) => {
-    // 認証ミドルウェアは通っているので、ログインはしている
-    // req.user に { id: XX, type: 'user' or 'organizer' } が入っている
-
-    // オーガナイザーもユーザー情報を取得できるよう、アクセス制限は緩めておく
-    // (必要なら、req.user.type === 'organizer' などのチェックを追加)
-
     try {
         const [rows] = await pool.query('SELECT user_id, user_name, mail FROM users WHERE user_id = ?', [req.params.userId]);
         if (rows.length > 0) {
@@ -477,15 +430,14 @@ app.get('/api/users/:userId', authenticateToken, async (req, res) => {
     }
 });
 
-
 // --- イベント関連 API ---
-// イベント一覧取得 API (開催日が未来のもの)
+// 【修正】イベント一覧取得API (特典情報も取得)
 app.get('/api/events', async (req, res) => {
     try {
         const now = new Date();
         const [rows] = await pool.query(
             `SELECT e.event_id, e.event_name, e.date, e.price, e.expirate, e.flyer,
-                 e.rate_per_click, e.max_discount_rate, o.organizer_name
+                 e.reward_type, e.reward_value, e.clicks_for_reward, e.max_rewards, o.organizer_name
              FROM events e
              JOIN organizers o ON e.organizer_id = o.organizer_id
              WHERE e.date > ? ORDER BY e.date ASC`,
@@ -498,7 +450,7 @@ app.get('/api/events', async (req, res) => {
     }
 });
 
-// 特定のイベント情報取得 API
+// 【修正】特定のイベント情報取得API (特典情報も取得)
 app.get('/api/events/:eventId', async (req, res) => {
      try {
         const [rows] = await pool.query(
@@ -519,86 +471,10 @@ app.get('/api/events/:eventId', async (req, res) => {
     }
 });
 
-// --- 割引・クリック関連 API ---
-// ユーザーの割引情報取得 API
-app.get('/api/users/:userId/discounts', authenticateToken, async (req, res) => {
-    const targetUserId = parseInt(req.params.userId, 10);
-
-    // 本人確認
-    if (req.user.type !== 'user' || req.user.id !== targetUserId) {
-        return res.status(403).json({ message: 'アクセス権限がありません' });
-    }
-
-    try {
-        const now = new Date();
-        // 有効期限内のクリック数をイベントごとに集計
-        const [clickCounts] = await pool.query(
-            `SELECT event_id, COUNT(*) as valid_clicks
-             FROM click_logs
-             WHERE user_id = ? AND clicked_at <= (SELECT expirate FROM events WHERE event_id = click_logs.event_id)
-             GROUP BY event_id`,
-            [targetUserId]
-        );
-
-        if (clickCounts.length === 0) {
-            return res.json([]); // クリックログがない場合は空配列を返す
-        }
-
-        const eventIds = clickCounts.map(c => c.event_id);
-        // イベント情報を取得
-        const [events] = await pool.query(
-            `SELECT event_id, event_name, price, rate_per_click, max_discount_rate
-             FROM events
-             WHERE event_id IN (?)`,
-            [eventIds]
-        );
-
-        const eventsMap = events.reduce((map, event) => {
-            map[event.event_id] = event;
-            return map;
-        }, {});
-
-        // 割引情報を計算して整形
-        const discounts = clickCounts.map(count => {
-            const event = eventsMap[count.event_id];
-            if (!event) return null;
-
-            // ★★★ 文字列の可能性があるので parseFloat で数値に変換 ★★★
-            const priceNum = parseFloat(event.price);
-            const ratePerClickNum = parseFloat(event.rate_per_click);
-            const maxDiscountRateNum = parseFloat(event.max_discount_rate); // これもDECIMALなら変換
-
-            // ★★★ 数値変数を使って計算 ★★★
-            const potentialDiscount = count.valid_clicks * ratePerClickNum;
-            const maxDiscountAmount = priceNum * (maxDiscountRateNum / 100);
-            const actualDiscount = Math.min(potentialDiscount, maxDiscountAmount);
-            const finalPrice = Math.max(0, priceNum - actualDiscount);
-
-            const discountRate = priceNum > 0 ? (actualDiscount / priceNum) * 100 : 0;
-
-            return {
-                event_id: event.event_id,
-                event_name: event.event_name,
-                click_count: count.valid_clicks,
-                discount_rate_calc: discountRate.toFixed(2), // 計算上の割引率
-                discount_amount: actualDiscount.toFixed(0), // 割引額 (切り捨て)
-                // ★★★ 数値変数を使って toFixed を呼び出す ★★★
-                original_price: priceNum.toFixed(0),
-                payment_price: Math.floor(finalPrice) // 最終支払額 (切り捨て)
-            };
-        }).filter(d => d !== null); // nullを除外
-        res.json(discounts);
-
-    } catch (error) {
-        console.error('Get user discounts error:', error);
-        res.status(500).json({ message: 'サーバーエラーが発生しました' });
-    }
-});
-
-// クリックログ記録 API (フライヤーページ用)
+// --- クリックログ記録 API (変更なし) ---
 app.post('/api/clicks', async (req, res) => {
     const { event_id, user_id } = req.body;
-    const ip_address = req.ip; // ExpressがIPアドレスを取得
+    const ip_address = req.ip;
 
     if (!event_id || !user_id) {
         return res.status(400).json({ message: 'イベントIDとユーザーIDは必須です' });
@@ -623,14 +499,11 @@ app.post('/api/clicks', async (req, res) => {
 
         await pool.query(
             'INSERT INTO click_logs (event_id, user_id, ip_address) VALUES (?, ?, ?)',
-             // ★注意: 以前UNIQUE KEYにDATE()を含められなかったので、ここでのON DUPLICATE KEY UPDATEは不要かも
-             // 代わりに、INSERTが成功したか、DUPLICATE KEYエラーになったかで判断する
             [event_id, user_id, ip_address]
         );
 
-        // Cookieを発行
         res.cookie(cookieName, '1', {
-             maxAge: 24 * 60 * 60 * 1000, // 1日
+             maxAge: 24 * 60 * 60 * 1000,
              httpOnly: true,
              secure: process.env.NODE_ENV === 'production',
              sameSite: 'Lax'
@@ -640,7 +513,6 @@ app.post('/api/clicks', async (req, res) => {
 
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
-             // DBのUNIQUE制約による重複の場合もCookieを発行
              res.cookie(cookieName, '1', { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'Lax' });
              return res.status(200).json({ message: 'クリック済みです (DB)', logged: false });
         }
@@ -649,9 +521,142 @@ app.post('/api/clicks', async (req, res) => {
     }
 });
 
+// --- 【新規】ユーザーの特典情報取得 API ---
+// 既存の /api/users/:userId/discounts をこのAPIに置き換えます。
+app.get('/api/users/:userId/rewards', authenticateToken, async (req, res) => {
+    const targetUserId = parseInt(req.params.userId, 10);
+    if (req.user.type !== 'user' || req.user.id !== targetUserId) {
+        return res.status(403).json({ message: 'アクセス権限がありません' });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        // 1. ユーザーがクリックしたイベントの一覧とクリック数を取得
+        const [clickCounts] = await connection.query(
+            `SELECT
+                cl.event_id,
+                COUNT(cl.click_id) AS valid_clicks,
+                e.reward_type,
+                e.reward_value,
+                e.clicks_for_reward,
+                e.max_rewards
+             FROM click_logs cl
+             JOIN events e ON cl.event_id = e.event_id
+             WHERE cl.user_id = ? AND cl.clicked_at <= e.expirate
+             GROUP BY cl.event_id, e.reward_type, e.reward_value, e.clicks_for_reward, e.max_rewards`,
+            [targetUserId]
+        );
+
+        // 2. イベントごとに、発行済みの特典数を取得
+        const [issuedRewards] = await connection.query(
+            `SELECT event_id, SUM(quantity) as issued_count
+             FROM user_rewards
+             WHERE user_id = ?
+             GROUP BY event_id`,
+            [targetUserId]
+        );
+        const issuedMap = issuedRewards.reduce((map, row) => {
+            map[row.event_id] = row.issued_count;
+            return map;
+        }, {});
+
+        // 3. 新しく発行すべき特典を計算し、DBに挿入
+        for (const clickInfo of clickCounts) {
+            const issuedCount = issuedMap[clickInfo.event_id] || 0;
+            const totalPossibleRewards = Math.floor(clickInfo.valid_clicks / clickInfo.clicks_for_reward);
+            const rewardsToIssue = Math.min(totalPossibleRewards, clickInfo.max_rewards) - issuedCount;
+
+            if (rewardsToIssue > 0) {
+                const [existingReward] = await connection.query(
+                    `SELECT user_reward_id FROM user_rewards
+                     WHERE user_id = ? AND event_id = ? AND is_claimed = FALSE`,
+                    [targetUserId, clickInfo.event_id]
+                );
+
+                if (existingReward.length > 0) {
+                    await connection.query(
+                        `UPDATE user_rewards SET quantity = quantity + ? WHERE user_reward_id = ?`,
+                        [rewardsToIssue, existingReward[0].user_reward_id]
+                    );
+                } else {
+                    await connection.query(
+                        `INSERT INTO user_rewards (user_id, event_id, reward_type, reward_value, quantity, is_claimed)
+                         VALUES (?, ?, ?, ?, ?, FALSE)`,
+                        [targetUserId, clickInfo.event_id, clickInfo.reward_type, clickInfo.reward_value, rewardsToIssue]
+                    );
+                }
+            }
+        }
+
+        // 4. 最終的な特典一覧をDBから取得して返す
+        // ★★★ WHERE句にイベント終了後24時間以内の条件を追加 ★★★
+        const [finalRewards] = await connection.query(
+            `SELECT ur.*, e.event_name, e.price
+             FROM user_rewards ur
+             JOIN events e ON ur.event_id = e.event_id
+             WHERE ur.user_id = ? AND e.date >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+             ORDER BY e.date DESC, ur.created_at DESC`,
+            [targetUserId]
+        );
+
+        await connection.commit();
+        connection.release();
+
+        const rewardsWithPrice = finalRewards.map(reward => {
+            if (reward.reward_type === 'discount') {
+                const priceNum = parseFloat(reward.price);
+                const discountRate = parseFloat(reward.reward_value);
+                const discountAmount = priceNum * (discountRate / 100) * reward.quantity;
+                const payment_price = Math.max(0, Math.floor(priceNum - discountAmount));
+                return { ...reward, payment_price };
+            }
+            return reward;
+        });
+
+        res.json(rewardsWithPrice);
+
+    } catch (error) {
+        if (connection) {
+            await connection.rollback();
+            connection.release();
+        }
+        console.error('Get/Process user rewards error:', error);
+        res.status(500).json({ message: '特典情報の処理中にエラーが発生しました' });
+    }
+});
+
+// --- 【新規】特典交換API ---
+app.post('/api/users/:userId/rewards/:userRewardId/claim', authenticateToken, async (req, res) => {
+    const targetUserId = parseInt(req.params.userId, 10);
+    const userRewardId = parseInt(req.params.userRewardId, 10);
+
+    if (req.user.type !== 'user' || req.user.id !== targetUserId) {
+        return res.status(403).json({ message: 'アクセス権限がありません' });
+    }
+
+    try {
+        const [result] = await pool.query(
+            'UPDATE user_rewards SET is_claimed = TRUE WHERE user_reward_id = ? AND user_id = ? AND is_claimed = FALSE',
+            [userRewardId, targetUserId]
+        );
+
+        if (result.affectedRows > 0) {
+            res.json({ message: '特典を交換しました' });
+        } else {
+            res.status(404).json({ message: '交換対象の特典が見つからないか、既に使用済みです' });
+        }
+    } catch (error) {
+        console.error('Claim reward error:', error);
+        res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    }
+});
+
 
 // --- オーガナイザー関連 API ---
-// オーガナイザー情報取得 API
+// (情報取得、イベント一覧取得、イベント削除APIは変更なしのため省略)
 app.get('/api/organizers/:organizerId', authenticateToken, async (req, res) => {
     const targetOrganizerId = parseInt(req.params.organizerId, 10);
     if (req.user.type !== 'organizer' || req.user.id !== targetOrganizerId) {
@@ -669,10 +674,6 @@ app.get('/api/organizers/:organizerId', authenticateToken, async (req, res) => {
         res.status(500).json({ message: 'サーバーエラーが発生しました' });
     }
 });
-
-// オーガナイザーが登録したイベント一覧取得 API
-// app.js の GET /api/organizers/:organizerId/events 部分
-
 app.get('/api/organizers/:organizerId/events', authenticateToken, async (req, res) => {
     const targetOrganizerId = parseInt(req.params.organizerId, 10);
     if (req.user.type !== 'organizer' || req.user.id !== targetOrganizerId) {
@@ -683,58 +684,45 @@ app.get('/api/organizers/:organizerId/events', authenticateToken, async (req, re
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         const [rows] = await pool.query(
-            `SELECT event_id, event_name, date, price, rate_per_click, max_discount_rate, expirate, flyer
+            `SELECT event_id, event_name, date, price, reward_type, reward_value, clicks_for_reward, max_rewards, expirate, flyer
              FROM events
              WHERE organizer_id = ? AND date >= ? ORDER BY date DESC`,
             [targetOrganizerId, thirtyDaysAgo]
         );
-
-        // ★★★ フロントエンドに送る直前のデータをログに出力 ★★★
-        console.log('--- Sending events data to frontend ---');
-        // JSON.stringifyで見やすく整形して出力
-        console.log(JSON.stringify(rows, null, 2));
-        // ★★★ ログ出力ここまで ★★★
-
-        res.json(rows); // フロントエンドに応答を返す
+        res.json(rows);
     } catch (error) {
         console.error('Get organizer events error:', error);
         res.status(500).json({ message: 'サーバーエラーが発生しました' });
     }
 });
-
 app.delete('/api/organizers/:organizerId/events/:eventId', authenticateToken, async (req, res) => {
     const targetOrganizerId = parseInt(req.params.organizerId, 10);
     const eventIdToDelete = parseInt(req.params.eventId, 10);
 
-    // 認証チェック (オーガナイザー本人か)
     if (req.user.type !== 'organizer' || req.user.id !== targetOrganizerId) {
         return res.status(403).json({ message: 'イベントを削除する権限がありません' });
     }
-
-    // パラメータチェック
     if (isNaN(eventIdToDelete)) {
         return res.status(400).json({ message: '無効なイベントIDです' });
     }
 
-    let connection; // コネクションを保持する変数
+    let connection;
     try {
-        connection = await pool.getConnection(); // プールからコネクション取得
-        await connection.beginTransaction(); // トランザクション開始
+        connection = await pool.getConnection();
+        await connection.beginTransaction();
 
-        // 1. イベント所有権とフライヤーパスを確認
         const [eventRows] = await connection.query(
             'SELECT flyer FROM events WHERE event_id = ? AND organizer_id = ?',
             [eventIdToDelete, targetOrganizerId]
         );
 
         if (eventRows.length === 0) {
-            await connection.rollback(); // ロールバック
-            connection.release(); // コネクション解放
+            await connection.rollback();
+            connection.release();
             return res.status(404).json({ message: '削除対象のイベントが見つからないか、あなたが所有者ではありません' });
         }
-        const flyerPathToDelete = eventRows[0].flyer; // /uploads/filename.png など
+        const flyerPathToDelete = eventRows[0].flyer;
 
-        // 2. クリックログの存在を確認
         const [clickRows] = await connection.query(
             'SELECT COUNT(*) as click_count FROM click_logs WHERE event_id = ?',
             [eventIdToDelete]
@@ -742,14 +730,12 @@ app.delete('/api/organizers/:organizerId/events/:eventId', authenticateToken, as
         const clickCount = clickRows[0].click_count;
 
         if (clickCount > 0) {
-            await connection.rollback(); // ロールバック
-            connection.release(); // コネクション解放
+            await connection.rollback();
+            connection.release();
             console.log(`Event ${eventIdToDelete} has ${clickCount} clicks, deletion denied.`);
-            // 400 Bad Request または 403 Forbidden を返す
             return res.status(400).json({ message: `クリックログが ${clickCount} 件存在するため削除できません` });
         }
 
-        // 3. クリック数が0ならイベントを削除
         console.log(`Attempting to delete event ${eventIdToDelete} (click count: 0)...`);
         const [deleteResult] = await connection.query(
             'DELETE FROM events WHERE event_id = ?',
@@ -757,29 +743,20 @@ app.delete('/api/organizers/:organizerId/events/:eventId', authenticateToken, as
         );
 
         if (deleteResult.affectedRows === 0) {
-             // 通常ここには来ないはずだが念のため
              throw new Error('Event deletion failed unexpectedly.');
         }
 
-        // 4. フライヤー画像を削除
         if (flyerPathToDelete) {
-            // 相対パス (/uploads/...) から絶対パスに変換
             const absolutePath = path.join(__dirname, 'public', flyerPathToDelete);
             console.log(`Attempting to delete flyer image: ${absolutePath}`);
             try {
-                // fs.promises を使って非同期で削除
                 await fs.promises.unlink(absolutePath);
                 console.log(`Successfully deleted flyer image: ${absolutePath}`);
             } catch (fileError) {
-                // ファイル削除のエラーはログには出すが、DB削除は成功しているので警告に留める
                 console.warn(`Failed to delete flyer image (${absolutePath}):`, fileError.message);
-                // ここでトランザクションをロールバックするかは要件による
-                // (DB削除は成功、ファイルだけ残ることを許容するかどうか)
-                // 今回はファイル削除失敗は許容し、コミットする
             }
         }
 
-        // 5. トランザクションをコミット
         await connection.commit();
         console.log(`Event ${eventIdToDelete} deleted successfully.`);
         res.json({ message: 'イベントを削除しました' });
@@ -787,110 +764,71 @@ app.delete('/api/organizers/:organizerId/events/:eventId', authenticateToken, as
     } catch (error) {
         console.error(`Error deleting event ${eventIdToDelete}:`, error);
         if (connection) {
-            await connection.rollback(); // エラー発生時はロールバック
+            await connection.rollback();
         }
         res.status(500).json({ message: 'イベント削除中にエラーが発生しました' });
     } finally {
         if (connection) {
-            connection.release(); // 最後に必ずコネクションを解放
+            connection.release();
         }
     }
 });
 
 
-// ★★★ 新規イベント追加 API (Multer対応版) ★★★
-// Multerミドルウェア upload.single('flyerImageFile') をルートハンドラの直前に追加
+// --- 【修正】新規イベント追加 API (Multer対応・特典対応版) ---
 app.post('/api/organizers/:organizerId/events', authenticateToken, upload.single('flyerImageFile'), async (req, res) => {
-    console.log('Received request to add event for organizer:', req.params.organizerId); // リクエスト受信ログ
-    console.log('Request body:', req.body); // テキストフィールドの内容
-    console.log('Uploaded file:', req.file); // アップロードされたファイル情報
-
     const targetOrganizerId = parseInt(req.params.organizerId, 10);
     if (req.user.type !== 'organizer' || req.user.id !== targetOrganizerId) {
-        console.log('Authorization failed for adding event.');
-        // アップロードされたファイルがあれば削除する（権限がないため）
-        if (req.file) {
-            fs.unlink(req.file.path, (err) => {
-                if (err) console.error("Failed to delete uploaded file on auth error:", err);
-                else console.log("Deleted uploaded file due to auth error:", req.file.path);
-            });
-        }
+        if (req.file) { fs.unlink(req.file.path, (err) => { if (err) console.error("Failed to delete file on auth error:", err); }); }
         return res.status(403).json({ message: 'アクセス権限がありません' });
     }
 
-    // リクエストボディから必要な情報を取得
-    const { event_name, date, price, rate_per_click, max_discount_rate, expirate } = req.body;
+    const { event_name, date, price, expirate, reward_type, reward_value, clicks_for_reward, max_rewards } = req.body;
 
-    // アップロードされたファイル情報のチェック
     if (!req.file) {
-        console.log('Flyer image file is required.');
         return res.status(400).json({ message: 'フライヤー画像ファイルは必須です' });
     }
 
-    // DBに保存するファイルパス (URL形式) を生成
-    const flyerUrlPath = `/uploads/${req.file.filename}`; // 例: /uploads/flyerImageFile-1678886400000-123456789.jpg
-    console.log(`Generated flyer URL path: ${flyerUrlPath}`);
-
-    // 簡単なバリデーション (数値変換を含む)
+    const flyerUrlPath = `/uploads/${req.file.filename}`;
     const priceNum = parseFloat(price);
-    const rateNum = parseFloat(rate_per_click);
-    const maxRateNum = parseFloat(max_discount_rate);
+    const clicksForRewardNum = parseInt(clicks_for_reward, 10);
+    const maxRewardsNum = parseInt(max_rewards, 10);
 
-    if (!event_name || !date || isNaN(priceNum) || isNaN(rateNum) || isNaN(maxRateNum) || !expirate) {
-         console.log('Validation failed for event data.');
-         // エラーの場合はアップロードされたファイルを削除
-        fs.unlink(req.file.path, (err) => {
-            if (err) console.error("Failed to delete uploaded file on validation error:", err);
-            else console.log("Deleted uploaded file due to validation error:", req.file.path);
-        });
+    if (!event_name || !date || !expirate || !reward_type || !reward_value || isNaN(priceNum) || isNaN(clicksForRewardNum) || isNaN(maxRewardsNum)) {
+        fs.unlink(req.file.path, (err) => { if (err) console.error("Failed to delete file on validation error:", err); });
         return res.status(400).json({ message: '必須項目が不足しているか、数値が無効です' });
     }
 
+    const formatDateTimeForDB = (dateTimeLocalString) => {
+        if (!dateTimeLocalString || typeof dateTimeLocalString !== 'string') return null;
+        return dateTimeLocalString.replace('T', ' ') + ':00';
+    };
+    const dbDate = formatDateTimeForDB(date);
+    const dbExpirate = formatDateTimeForDB(expirate);
+
+    if (!dbDate || !dbExpirate) {
+        fs.unlink(req.file.path, (err) => { if (err) console.error("Failed to delete file on date format error:", err); });
+        return res.status(400).json({ message: '日付または有効期限の形式が無効です' });
+    }
+
     try {
-        console.log('Inserting event into database...');
-
-        // ★★★ フロントエンドからの日時文字列をDB用形式にフォーマット ★★★
-        // input type="datetime-local" からは "YYYY-MM-DDTHH:MM" 形式で来る想定
-        const formatDateTimeForDB = (dateTimeLocalString) => {
-            if (!dateTimeLocalString || typeof dateTimeLocalString !== 'string') {
-                return null; // またはエラー処理
-            }
-            // 'T' をスペースに置き換え、秒 (:00) を追加
-            return dateTimeLocalString.replace('T', ' ') + ':00';
-        };
-
-        const dbDate = formatDateTimeForDB(date);
-        const dbExpirate = formatDateTimeForDB(expirate);
-
-        if (!dbDate || !dbExpirate) {
-            fs.unlink(req.file.path, (err) => { /* ... エラー処理 ... */ });
-            return res.status(400).json({ message: '日付または有効期限の形式が無効です' });
-        }
-
-        const sql = 'INSERT INTO events (organizer_id, event_name, date, price, rate_per_click, max_discount_rate, expirate, flyer) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-        const values = [targetOrganizerId, event_name, dbDate, priceNum, rateNum, maxRateNum, dbExpirate, flyerUrlPath];
-
-        console.log('Executing SQL:', sql);
-        console.log('With Values:', values);
+        const sql = `INSERT INTO events
+            (organizer_id, event_name, date, price, expirate, flyer, reward_type, reward_value, clicks_for_reward, max_rewards)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const values = [targetOrganizerId, event_name, dbDate, priceNum, dbExpirate, flyerUrlPath, reward_type, reward_value, clicksForRewardNum, maxRewardsNum];
 
         const [result] = await pool.query(sql, values);
-
-        console.log('Event added successfully, ID:', result.insertId);
         res.status(201).json({ message: 'イベントを追加しました', eventId: result.insertId, flyerPath: flyerUrlPath });
-    } catch (error) { 
+    } catch (error) {
         console.error('Add event DB error:', error);
-         // DBエラーの場合もアップロードされたファイルを削除
-        fs.unlink(req.file.path, (err) => {
-            if (err) console.error("Failed to delete uploaded file on DB error:", err);
-            else console.log("Deleted uploaded file due to DB error:", req.file.path);
-        });
+        fs.unlink(req.file.path, (err) => { if (err) console.error("Failed to delete file on DB error:", err); });
         res.status(500).json({ message: 'データベースエラーが発生しました' });
     }
 });
 
-
-// オーガナイザー向け割引状況確認 API
-app.get('/api/organizers/:organizerId/discount-summary', authenticateToken, async (req, res) => {
+// --- 【修正】オーガナイザー向け特典状況確認 API ---
+// /api/organizers/:organizerId/discount-summary をこのAPIに置き換えます。
+app.get('/api/organizers/:organizerId/reward-summary', authenticateToken, async (req, res) => {
     const targetOrganizerId = parseInt(req.params.organizerId, 10);
     if (req.user.type !== 'organizer' || req.user.id !== targetOrganizerId) {
         return res.status(403).json({ message: 'アクセス権限がありません' });
@@ -905,102 +843,51 @@ app.get('/api/organizers/:organizerId/discount-summary', authenticateToken, asyn
         let sql = `
             SELECT
                 e.event_name,
-                u.user_name,           -- ★ 表示する
-                cl.user_id,            -- ★ GROUP BY のために必要
-                COUNT(cl.click_id) AS click_count,
-                e.price,               -- ★ 計算用に必要
-                e.rate_per_click,
-                e.max_discount_rate
-            FROM click_logs cl
-            JOIN events e ON cl.event_id = e.event_id
-            JOIN users u ON cl.user_id = u.user_id
-            WHERE e.organizer_id = ?
-              AND cl.clicked_at <= e.expirate
-              AND e.date >= ?
+                u.user_name,
+                ur.reward_type,
+                ur.reward_value,
+                ur.quantity,
+                ur.is_claimed
+            FROM user_rewards ur
+            JOIN events e ON ur.event_id = e.event_id
+            JOIN users u ON ur.user_id = u.user_id
+            WHERE e.organizer_id = ? AND e.date >= ?
         `;
         const params = [targetOrganizerId, thirtyDaysAgo];
 
         if (filterEventId) {
-            sql += ' AND cl.event_id = ?';
+            sql += ' AND ur.event_id = ?';
             params.push(filterEventId);
         }
-
-        // ★★★ GROUP BY に user_id を含める (user_name を確定するため) ★★★
-        sql += ' GROUP BY e.event_id, e.event_name, cl.user_id, u.user_name, e.price, e.rate_per_click, e.max_discount_rate ORDER BY e.event_name, u.user_name';
+        sql += ' ORDER BY e.date DESC, u.user_name ASC';
 
         const [rows] = await pool.query(sql, params);
-
-        const summary = rows.map(row => {
-            const priceNum = parseFloat(row.price);
-            const ratePerClickNum = parseFloat(row.rate_per_click);
-            const maxDiscountRateNum = parseFloat(row.max_discount_rate);
-            const clickCount = parseInt(row.click_count, 10);
-
-            if (isNaN(priceNum) || isNaN(ratePerClickNum) || isNaN(maxDiscountRateNum) || isNaN(clickCount)) {
-                // ... (エラーハンドリング: 少なくとも表示に必要なものを返す)
-                return {
-                    event_name: row.event_name || 'エラー',
-                    user_name: row.user_name || 'エラー',
-                    click_count: row.click_count || 'エラー',
-                    discount_rate_calc: 'Error',
-                    discount_amount: 'Error',
-                    payment_price: 'Error'
-                };
-            }
-
-            const potentialDiscount = clickCount * ratePerClickNum;
-            const maxDiscountAmount = priceNum * (maxDiscountRateNum / 100);
-            const actualDiscount = Math.min(potentialDiscount, maxDiscountAmount);
-            const finalPrice = Math.max(0, priceNum - actualDiscount);
-            const discountRate = priceNum > 0 ? (actualDiscount / priceNum) * 100 : 0;
-            return {
-                event_name: row.event_name,
-                user_name: row.user_name,          // 紹介ユーザー名
-                click_count: clickCount,           // クリック数
-                discount_rate_calc: discountRate.toFixed(2), // 割引率(%)
-                discount_amount: actualDiscount.toFixed(0),   // 割引額(円)
-                payment_price: Math.floor(finalPrice)         // 支払額(円)
-                // original_price は含めない
-                // user_id は含めない
-            };
-        });
-
-        console.log('--- Sending discount summary data: ---');
-        console.log(JSON.stringify(summary, null, 2));
-        res.json(summary);
+        res.json(rows);
 
     } catch (error) {
-        console.error('Get organizer discount summary error:', error);
+        console.error('Get organizer reward summary error:', error);
         res.status(500).json({ message: 'サーバーエラーが発生しました' });
     }
 });
-
 
 // --- サーバー起動 ---
 app.listen(port, '0.0.0.0', () => {
     console.log(`Server running on port ${port}`);
 });
-// --- エラーハンドリング (簡易) ---
-// Multerのエラーハンドリングを追加 (任意)
+
+// --- エラーハンドリング ---
 app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
-        // Multer固有のエラー (例: ファイルサイズ超過など)
         console.error('Multer error:', err);
         return res.status(400).json({ message: `ファイルアップロードエラー: ${err.message}` });
     } else if (err) {
-        // MulterのfileFilterで発生したエラーなど
-        console.error('File filter error or other error:', err);
         if (err.message === '画像ファイルのみアップロード可能です') {
              return res.status(400).json({ message: err.message });
         }
     }
-    // その他のエラーは次のミドルウェアへ
     next(err);
 });
-
-// 最終的なエラーハンドラ
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err.stack);
-    res.status(500).json({ message: '予期せぬサーバーエラーが発生しました。既に他のSNSアカウントで登録済みの可能性があります。' });
-}
-);
+    res.status(500).json({ message: '予期せぬサーバーエラーが発生しました。' });
+});

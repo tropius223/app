@@ -1,94 +1,65 @@
-// organizer.js (改訂版・全文)
+// organizer.js (特典機能改修版)
 
-// グローバルスコープで宣言
+// --- グローバル変数定義 ---
 let currentOrganizerId = null;
 let organizerNameSpan = null;
 let addEventForm = null;
 let organizerEventTableBody = null;
-let discountSummaryListDiv = null;
+let rewardSummaryListDiv = null; // 名前を変更
 let logoutButton = null;
 let messageDiv = null;
 let filterEventSelect = null;
-let filterUserInput = null; 
-let eventPriceInput = null;
-let eventRatePercentInput = null;
-let calculatedDiscountYenSpan = null;
+
+// 特典フォーム用の要素
+let rewardTypeSelect = null;
+let rewardValueLabel = null;
+let rewardValueInput = null;
 
 // --- DOMContentLoaded イベントリスナー ---
-// organizer.js (DOMContentLoaded リスナー修正版)
-
 document.addEventListener('DOMContentLoaded', () => {
-    // 要素取得
+    // --- 要素取得 ---
     organizerNameSpan = document.getElementById('organizerName');
     addEventForm = document.getElementById('addEventForm');
     organizerEventTableBody = document.getElementById('organizerEventTableBody');
-    discountSummaryListDiv = document.getElementById('discountSummaryList'); 
+    rewardSummaryListDiv = document.getElementById('rewardSummaryList'); // IDを変更
     logoutButton = document.getElementById('logoutButton');
     messageDiv = document.getElementById('message');
     filterEventSelect = document.getElementById('filterEvent');
-    filterUserInput = document.getElementById('filterUser');
-    eventPriceInput = document.getElementById('eventPrice');
-    eventRatePercentInput = document.getElementById('eventRatePercent');
-    calculatedDiscountYenSpan = document.getElementById('calculatedDiscountYen');
+
+    // 特典フォーム用の要素を取得
+    rewardTypeSelect = document.getElementById('rewardType');
+    rewardValueLabel = document.getElementById('rewardValueLabel');
+    rewardValueInput = document.getElementById('rewardValue');
 
     // --- イベントリスナー設定 ---
 
     // ログアウトボタン
-    if(logoutButton) {
+    if (logoutButton) {
         logoutButton.addEventListener('click', handleLogout);
-    } else {
-        console.error("Logout button not found.");
     }
 
     // イベント追加フォーム
-    if(addEventForm) {
+    if (addEventForm) {
         addEventForm.addEventListener('submit', handleAddEventSubmit);
-    } else {
-        console.error("Add event form not found.");
     }
 
-    // 割引サマリーの絞り込みボタン (もし使うならセレクタをHTMLに合わせる)
-    const filterButton = document.querySelector('#discount-summary-section button'); // 仮のセレクタ注意
-    if(filterButton) {
-       filterButton.addEventListener('click', loadDiscountSummary);
-       console.log("Filter button listener added."); // リスナーが追加されたか確認用ログ
-    } else {
-       // console.log("Filter button not found or selector is incorrect."); // ボタンがない場合
+    // 特典の種類に応じて入力欄を変更するリスナー
+    if (rewardTypeSelect) {
+        rewardTypeSelect.addEventListener('change', handleRewardTypeChange);
+        handleRewardTypeChange(); // 初期表示のため一度呼び出す
     }
 
-    // 割引サマリーのイベント絞り込みセレクト
+    // 特典サマリーのイベント絞り込みセレクト
     if (filterEventSelect) {
-        filterEventSelect.addEventListener('change', loadDiscountSummary);
-        console.log("Filter select listener added."); // リスナーが追加されたか確認用ログ
-    } else {
-         console.error("Filter select element not found.");
+        filterEventSelect.addEventListener('change', loadRewardSummary);
     }
-    if (eventPriceInput && eventRatePercentInput && calculatedDiscountYenSpan) {
-        eventPriceInput.addEventListener('input', updateCalculatedDiscount);
-        eventRatePercentInput.addEventListener('input', updateCalculatedDiscount);
-        updateCalculatedDiscount(); // 初期表示のため一度呼び出す
-        console.log("Dynamic discount calculation listeners added."); // リスナーが追加されたか確認用ログ
-    } else {
-        console.error("Elements for dynamic discount calculation not found.");
-    }
+
     // 認証チェックとデータ読み込みを開始
     checkAuthAndLoadData();
-}); 
+});
 
 // --- 関数定義 ---
-function updateCalculatedDiscount() {
-    if (!eventPriceInput || !eventRatePercentInput || !calculatedDiscountYenSpan) return;
 
-    const price = parseFloat(eventPriceInput.value);
-    const ratePercent = parseFloat(eventRatePercentInput.value);
-
-    if (!isNaN(price) && price > 0 && !isNaN(ratePercent) && ratePercent >= 0) {
-        const discountYen = Math.floor(price * ratePercent / 100); // 円単位に丸める (小数点以下切り捨て)
-        calculatedDiscountYenSpan.textContent = `( 約 ${discountYen.toLocaleString()} 円 / クリック )`;
-    } else {
-        calculatedDiscountYenSpan.textContent = ''; // 無効な入力ならクリア
-    }
-}
 // メッセージ表示
 function showMessage(text, type = 'error') {
     if (!messageDiv) return;
@@ -104,6 +75,35 @@ function hideMessage() {
     messageDiv.textContent = '';
     messageDiv.className = 'message hidden';
 }
+
+/**
+ * [新規] 特典の種類に応じて入力フィールドのラベルや属性を変更する関数
+ */
+function handleRewardTypeChange() {
+    if (!rewardTypeSelect || !rewardValueLabel || !rewardValueInput) return;
+
+    const selectedType = rewardTypeSelect.value;
+
+    if (selectedType === 'discount') {
+        rewardValueLabel.textContent = '割引率 (%):';
+        rewardValueInput.type = 'number';
+        rewardValueInput.placeholder = '例: 10';
+        rewardValueInput.step = '0.1';
+        rewardValueInput.min = '0';
+        rewardValueInput.max = '100';
+        rewardValueInput.value = ''; // タイプ変更時に値をクリア
+    } else { // 'goods' または 'drink' の場合
+        rewardValueLabel.textContent = '特典の内容 (グッズ名など):';
+        rewardValueInput.type = 'text';
+        rewardValueInput.placeholder = selectedType === 'goods' ? '例: オリジナルTシャツ' : '例: 1ドリンク';
+        // number関連の属性を削除
+        rewardValueInput.removeAttribute('step');
+        rewardValueInput.removeAttribute('min');
+        rewardValueInput.removeAttribute('max');
+        rewardValueInput.value = ''; // タイプ変更時に値をクリア
+    }
+}
+
 
 // 認証チェックとデータ読み込み
 async function checkAuthAndLoadData() {
@@ -121,7 +121,7 @@ async function checkAuthAndLoadData() {
             window.location.href = '/login.html';
             return;
         }
-         const authData = await response.json();
+        const authData = await response.json();
         if (!authData.isAuthenticated || authData.user.type !== 'organizer' || authData.user.id !== parseInt(currentOrganizerId, 10)) {
             console.warn('Authentication mismatch or failed.', authData);
             window.location.href = '/login.html';
@@ -129,8 +129,7 @@ async function checkAuthAndLoadData() {
         }
 
         loadOrganizerName();
-        loadOrganizerEvents(); // イベント一覧読み込み (内部で割引サマリーも呼ぶ)
-        // loadDiscountSummary(); // loadOrganizerEventsから呼ばれるので不要かも
+        loadOrganizerEvents(); // イベント一覧読み込み (内部で特典サマリーも呼ぶ)
 
     } catch (error) {
         console.error('Auth check error:', error);
@@ -157,34 +156,28 @@ async function loadOrganizerName() {
 // オーガナイザーのイベント一覧読み込み
 async function loadOrganizerEvents() {
     if (!currentOrganizerId || !organizerEventTableBody) return;
-    organizerEventTableBody.innerHTML = '<tr><td colspan="4">イベント情報を読み込み中...</td></tr>'; // Colspan 変更
+    organizerEventTableBody.innerHTML = '<tr><td colspan="5">イベント情報を読み込み中...</td></tr>';
     try {
         const response = await fetch(`/api/organizers/${currentOrganizerId}/events`);
-         if (!response.ok) {
-             if (response.status === 403) {
-                 window.location.href = '/login.html';
-                 return;
-             }
-             // 500エラーなどで result.message を表示
-             const result = await response.json().catch(() => ({ message: 'サーバーエラー' }));
-             throw new Error(result.message || `HTTP error! status: ${response.status}`);
-         }
+        if (!response.ok) {
+            const result = await response.json().catch(() => ({ message: 'サーバーエラー' }));
+            throw new Error(result.message || `HTTP error! status: ${response.status}`);
+        }
         const events = await response.json();
         displayOrganizerEvents(events);
-        populateEventFilter(events); // 絞り込み用セレクトボックスも更新
-        loadDiscountSummary(); // イベント読み込み後に割引サマリーも読み込む
+        populateEventFilter(events);
+        loadRewardSummary(); // イベント読み込み後に特典サマリーも読み込む
     } catch (error) {
         console.error('Error loading organizer events:', error);
-        organizerEventTableBody.innerHTML = `<tr><td colspan="4">イベント情報の読み込みに失敗しました: ${error.message}</td></tr>`;
-        // エラー時も割引サマリーは読み込む（別APIなので）
-        loadDiscountSummary();
+        organizerEventTableBody.innerHTML = `<tr><td colspan="5">イベント情報の読み込みに失敗しました: ${error.message}</td></tr>`;
+        loadRewardSummary(); // エラー時もサマリーは読み込み試行
     }
 }
 
-// イベント一覧表示 
+// [修正] イベント一覧表示
 function displayOrganizerEvents(events) {
     if (!organizerEventTableBody) return;
-    organizerEventTableBody.innerHTML = ''; // クリア
+    organizerEventTableBody.innerHTML = '';
     if (!events || events.length === 0) {
         organizerEventTableBody.innerHTML = '<tr><td colspan="5">登録済みのイベントはありません。(開催後30日経過したイベントは表示されません)</td></tr>';
         return;
@@ -193,40 +186,46 @@ function displayOrganizerEvents(events) {
     events.forEach(event => {
         const row = organizerEventTableBody.insertRow();
 
-        // ★★★ DBからの文字列 "YYYY-MM-DD HH:MM:SS" をJSTとして解釈させるため加工 ★★★
         const eventDateString = event.date ? String(event.date).replace(' ', 'T') + '+09:00' : '';
-        const expirateDateString = event.expirate ? String(event.expirate).replace(' ', 'T') + '+09:00' : '';
-
-        // 加工した文字列を new Date() に渡す
         const parsedEventDate = eventDateString ? new Date(eventDateString) : null;
-        const parsedExpirateDate = expirateDateString ? new Date(expirateDateString) : null;
-
-        // isNaN で Invalid Date かチェック
         const displayEventDate = parsedEventDate && !isNaN(parsedEventDate)
             ? parsedEventDate.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
             : '---';
-        const displayExpirateDate = parsedExpirateDate && !isNaN(parsedExpirateDate)
-            ? parsedExpirateDate.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })
-            : '---';
+
+        // 特典情報の表示テキストを作成
+        let rewardText = '';
+        switch (event.reward_type) {
+            case 'discount':
+                rewardText = `割引: ${event.reward_value}%`;
+                break;
+            case 'goods':
+                rewardText = `グッズ: ${event.reward_value}`;
+                break;
+            case 'drink':
+                rewardText = `ドリンク: ${event.reward_value}`;
+                break;
+            default:
+                rewardText = '未設定';
+        }
 
         row.innerHTML = `
             <td data-label="イベント名:">${event.event_name}</td>
             <td data-label="開催日時:">${displayEventDate}</td>
             <td data-label="価格:" class="text-right">¥${Number(event.price).toLocaleString()}</td>
-            <td data-label="有効期限:">${displayExpirateDate}</td>
-            <td data-label="クリック単価:">¥${Number(event.rate_per_click).toLocaleString()}</td>
-            <td data-label="">
+            <td data-label="特典:">${rewardText}</td>
+            <td data-label="操作:">
                 <button class="danger" onclick="confirmAndDeleteEvent(${event.event_id})">削除</button>
             </td>
         `;
     });
 }
+
 // 絞り込み用セレクトボックスにイベントを設定
 function populateEventFilter(events) {
     if (!filterEventSelect) return;
-    const currentFilterValue = filterEventSelect.value; // 現在の選択値を保持
-    filterEventSelect.innerHTML = '<option value="">すべてのイベント</option>'; // Reset
-    if(events && events.length > 0) {
+    const currentFilterValue = filterEventSelect.value;
+    filterEventSelect.innerHTML = '<option value="">すべてのイベント</option>';
+    if (events && events.length > 0) {
         events.forEach(event => {
             const option = document.createElement('option');
             option.value = event.event_id;
@@ -234,88 +233,104 @@ function populateEventFilter(events) {
             filterEventSelect.appendChild(option);
         });
     }
-     filterEventSelect.value = currentFilterValue; // 可能な限り選択値を復元
+    filterEventSelect.value = currentFilterValue;
 }
 
-// 割引状況の読み込み（絞り込み対応）
-async function loadDiscountSummary() {
-    if (!currentOrganizerId || !discountSummaryListDiv || !filterEventSelect) return;
-    discountSummaryListDiv.innerHTML = '<p>割引状況を読み込み中...</p>'; // 初期表示
+// [修正] 特典状況の読み込み
+async function loadRewardSummary() {
+    if (!currentOrganizerId || !rewardSummaryListDiv || !filterEventSelect) return;
+    rewardSummaryListDiv.innerHTML = '<p>特典状況を読み込み中...</p>';
     hideMessage();
+
     const filterEventId = filterEventSelect.value;
-    let apiUrl = `/api/organizers/${currentOrganizerId}/discount-summary`;
+    // APIエンドポイントを新しいものに変更
+    let apiUrl = `/api/organizers/${currentOrganizerId}/reward-summary`;
     if (filterEventId) {
         apiUrl += `?event_id=${filterEventId}`;
     }
 
     try {
         const response = await fetch(apiUrl);
-         if (!response.ok) {
-            if (response.status === 403) {
-                window.location.href = '/login.html';
-                return;
-            }
+        if (!response.ok) {
             const result = await response.json().catch(() => ({ message: 'サーバーエラー' }));
             throw new Error(result.message || `HTTP error! status: ${response.status}`);
         }
         const summary = await response.json();
-        displayDiscountSummary(summary);
+        displayRewardSummary(summary);
     } catch (error) {
-        console.error('Error loading discount summary:', error);
-        discountSummaryListDiv.innerHTML = `<p>割引状況の読み込みに失敗しました: ${error.message}</p>`;
+        console.error('Error loading reward summary:', error);
+        rewardSummaryListDiv.innerHTML = `<p>特典状況の読み込みに失敗しました: ${error.message}</p>`;
     }
 }
 
-// 割引サマリー表示
-function displayDiscountSummary(summary) {
-    if (!discountSummaryListDiv) return;
-    discountSummaryListDiv.innerHTML = ''; // クリア
+// [修正] 特典サマリー表示
+function displayRewardSummary(summary) {
+    if (!rewardSummaryListDiv) return;
+    rewardSummaryListDiv.innerHTML = '';
 
     if (!summary || summary.length === 0) {
-        discountSummaryListDiv.innerHTML = '<p>割引状況データがありません。(開催後30日経過したイベントは表示されません)</p>';
+        rewardSummaryListDiv.innerHTML = '<p>特典状況データがありません。(開催後30日経過したイベントは表示されません)</p>';
         return;
     }
 
     summary.forEach(item => {
         const summaryItemCard = document.createElement('div');
-        summaryItemCard.className = 'summary-item-card'; 
+        summaryItemCard.className = 'summary-item-card';
+
+        // 特典情報の表示テキストを作成
+        let rewardText = '';
+        switch (item.reward_type) {
+            case 'discount':
+                rewardText = `割引 ${item.reward_value}%`;
+                break;
+            case 'goods':
+                rewardText = `グッズ: ${item.reward_value}`;
+                break;
+            case 'drink':
+                rewardText = `ドリンク: ${item.reward_value}`;
+                break;
+        }
+
+        const statusText = item.is_claimed ? '交換済み' : '未交換';
+        const statusClass = item.is_claimed ? 'claimed' : 'unclaimed';
+
         summaryItemCard.innerHTML = `
             <div class="summary-card-row">
                 <div class="summary-card-label">イベント名</div>
                 <div class="summary-card-value event-name">${item.event_name}</div>
                 <div class="summary-card-label">紹介ユーザー</div>
                 <div class="summary-card-value user-name">${item.user_name}</div>
-                <div class="summary-card-label">支払額</div>
-                <div class="summary-card-value payment-price bold">¥${Number(item.payment_price).toLocaleString()}</div>
             </div>
             <div class="summary-card-row">
-                <div class="summary-card-label">拡散数</div>
-                <div class="summary-card-value click-count">${item.click_count} 回</div>
-                <div class="summary-card-label">割引率(%)</div>
-                <div class="summary-card-value discount-rate">${item.discount_rate_calc}%</div>
-                <div class="summary-card-label">割引額</div>
-                <div class="summary-card-value discount-amount">¥${Number(item.discount_amount).toLocaleString()}</div>
+                <div class="summary-card-label">特典</div>
+                <div class="summary-card-value reward-info">${rewardText}</div>
+                <div class="summary-card-label">数量</div>
+                <div class="summary-card-value quantity">${item.quantity} 個</div>
+                <div class="summary-card-label">状態</div>
+                <div class="summary-card-value status ${statusClass}">${statusText}</div>
             </div>
         `;
-        discountSummaryListDiv.appendChild(summaryItemCard);
+        rewardSummaryListDiv.appendChild(summaryItemCard);
     });
 }
 
 // --- イベント操作 ---
 
-// イベント追加フォーム送信処理
+// [修正] イベント追加フォーム送信処理
 async function handleAddEventSubmit(event) {
     event.preventDefault();
     hideMessage();
 
     const formData = new FormData(addEventForm);
 
+    // ファイル選択のバリデーション
     const flyerInput = document.getElementById('eventFlyer');
     if (!flyerInput || !flyerInput.files || flyerInput.files.length === 0) {
         showMessage('フライヤー画像を選択してください。');
         return;
     }
 
+    // 日付の前後関係バリデーション
     const dateValue = formData.get('date');
     const expirateValue = formData.get('expirate');
     if (dateValue && expirateValue && new Date(expirateValue) >= new Date(dateValue)) {
@@ -323,55 +338,31 @@ async function handleAddEventSubmit(event) {
         return;
     }
 
-    const priceStr = formData.get('price');
-    const ratePercentStr = formData.get('eventRatePercent'); // HTMLのname属性に合わせたキー
-    const priceNum = parseFloat(priceStr);
-    const ratePercentNum = parseFloat(ratePercentStr);
-
-    if (isNaN(priceNum) || priceNum < 0 || isNaN(ratePercentNum) || ratePercentNum < 0) {
-        showMessage('価格または割引率が無効な数値です。');
-        return;
-    }
-    const ratePerClickYen = (priceNum * ratePercentNum / 100);
-    formData.append('rate_per_click', ratePerClickYen.toFixed(2)); // 小数点2桁までの文字列として追加
+    // 以前の割引率計算は不要になったため削除
 
     try {
-        console.log('Submitting FormData to add event...');
         const response = await fetch(`/api/organizers/${currentOrganizerId}/events`, {
             method: 'POST',
-            body: formData
+            body: formData // FormDataをそのまま送信
         });
 
-        let result = {};
-        try {
-            result = await response.json();
-        } catch (jsonError) {
-            console.error('Failed to parse response as JSON:', jsonError);
-            if (!response.ok) {
-                 showMessage(`イベント追加に失敗しました (Status: ${response.status})`);
-                 return;
-            }
-            result = { message: '応答の解析に失敗しました' };
-        }
+        const result = await response.json().catch(() => ({}));
 
         if (response.ok) {
-            showMessage(`イベントを追加しました。画像パス: ${result.flyerPath}`, 'success');
+            showMessage(`イベントを追加しました。`, 'success');
             addEventForm.reset();
-            loadOrganizerEvents(); // 再読み込み (内部で割引サマリーも再読み込み)
+            handleRewardTypeChange(); // フォームリセット後に表示を更新
+            loadOrganizerEvents();
             const detailsElement = document.querySelector('#addEventFormContainer details');
             if (detailsElement) detailsElement.removeAttribute('open');
         } else {
-             if (response.status === 403) {
-                 window.location.href = '/login.html';
-                 return;
-             }
             showMessage(result.message || `イベントの追加に失敗しました (Status: ${response.status})`);
         }
     } catch (error) {
         console.error('Add event fetch error:', error);
-        showMessage('イベント追加リクエスト中にネットワークエラーなどが発生しました。');
+        showMessage('イベント追加リクエスト中にネットワークエラーが発生しました。');
     } finally {
-         setTimeout(hideMessage, 5000);
+        setTimeout(hideMessage, 5000);
     }
 }
 
@@ -386,26 +377,17 @@ function confirmAndDeleteEvent(eventId) {
 async function deleteEvent(eventId) {
     hideMessage();
     try {
-        console.log(`Attempting to delete event ${eventId}`);
         const response = await fetch(`/api/organizers/${currentOrganizerId}/events/${eventId}`, {
             method: 'DELETE'
         });
 
-        const result = await response.json().catch(() => ({})); // エラー時も解析試行
+        const result = await response.json().catch(() => ({}));
 
         if (response.ok) {
             showMessage(result.message || 'イベントを削除しました。', 'success');
-            loadOrganizerEvents(); // イベント一覧を再読み込み
+            loadOrganizerEvents();
         } else {
-            if (response.status === 403) { // 権限なし
-                showMessage(result.message || '削除権限がありません。');
-            } else if (response.status === 400) { // クリックログあり or 不正なID
-                showMessage(result.message || '削除できませんでした。');
-            } else if (response.status === 404) { // イベントなし
-                 showMessage(result.message || 'イベントが見つかりません。');
-            } else { // その他のサーバーエラー
-                 showMessage(result.message || `イベント削除中にエラーが発生しました (Status: ${response.status})`);
-            }
+            showMessage(result.message || `イベント削除中にエラーが発生しました (Status: ${response.status})`);
         }
     } catch (error) {
         console.error(`Error deleting event ${eventId}:`, error);
@@ -415,10 +397,9 @@ async function deleteEvent(eventId) {
     }
 }
 
-
 // ログアウト処理
 async function handleLogout() {
-     try {
+    try {
         const response = await fetch('/api/logout', { method: 'POST' });
         if (response.ok) {
             window.location.href = '/login.html';

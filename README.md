@@ -1,4 +1,4 @@
-# HotFlyer - イベント紹介割引システム
+sudo journalctl -u <your-server-service-name> -f# HotFlyer - イベント紹介割引システム
 
 HotFlyer（ホットフライヤー）は、イベント割引やシェア機能を提供するプラットフォームです。ユーザーとオーガナイザー向けの簡単ログイン機能を搭載しています。
 

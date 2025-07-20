@@ -30,7 +30,7 @@
                         <label for="eventDate">開催日時:</label>
                         <input type="datetime-local" id="eventDate" name="date" required>
                     </div>
-                     <div>
+                    <div>
                         <label for="eventFlyer">フライヤー画像:</label>
                         <input type="file" id="eventFlyer" name="flyerImageFile" accept="image/*" required>
                     </div>
@@ -38,22 +38,36 @@
                         <label for="eventPrice">通常価格 (円):</label>
                         <input type="number" id="eventPrice" name="price" step="1" min="0" required>
                     </div>
-                     <div>
-                        <label for="eventRatePercent">1クリックあたりの割引<span style="color: red; font-weight: bold;">率 (%)</span>:</label>
-                        <input type="number" id="eventRatePercent" name="eventRatePercent" step="0.1" min="0" max="100" required>
-                        <span id="calculatedDiscountYen" style="margin-left: 10px; font-size: 0.9em; color: #555;"></span>
+                    <hr style="margin: 15px 0;">
+                    <p style="font-weight: bold; margin-bottom: 10px;">特典設定</p>
+                    <div>
+                        <label for="rewardType">特典の種類:</label>
+                        <select id="rewardType" name="reward_type" required>
+                            <option value="discount">割引</option>
+                            <option value="goods">グッズ</option>
+                            <option value="drink">ドリンク</option>
+                        </select>
                     </div>
-                     <div>
-                        <label for="eventMaxDiscountRate">最大割引率 (%):</label>
-                        <input type="number" id="eventMaxDiscountRate" name="max_discount_rate" step="0.1" min="0" max="100" required>
+                    <div id="rewardValueContainer">
+                        <label for="rewardValue" id="rewardValueLabel">特典の内容:</label>
+                        <input type="text" id="rewardValue" name="reward_value" required>
                     </div>
+                    <div>
+                        <label for="clicksForReward">特典獲得に必要なクリック数:</label>
+                        <input type="number" id="clicksForReward" name="clicks_for_reward" min="1" step="1" required>
+                    </div>
+                    <div>
+                        <label for="maxRewards">ユーザー1人あたりの最大特典数:</label>
+                        <input type="number" id="maxRewards" name="max_rewards" min="1" step="1" required>
+                    </div>
+                    <hr style="margin: 15px 0;">
                     <div>
                         <label for="eventExpirate">クリック有効期限:</label>
                         <input type="datetime-local" id="eventExpirate" name="expirate" required>
                     </div>
                     <button type="submit">イベントを追加</button>
                 </form>
-            </details>
+                            </details>
         </section>
 
         <section>
