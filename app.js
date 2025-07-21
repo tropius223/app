@@ -281,7 +281,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-app.get('/api/organizers/:organizerId/reward-summary/gsheet-url', authenticateToken, async (req, res) => {
+// --- 【新規】オーガナイザー向け特典状況CSVダウンロード API ---
+app.get('/api/organizers/:organizerId/reward-summary/csv', authenticateToken, async (req, res) => {
     const targetOrganizerId = parseInt(req.params.organizerId, 10);
     if (req.user.type !== 'organizer' || req.user.id !== targetOrganizerId) {
         return res.status(403).json({ message: 'アクセス権限がありません' });
@@ -293,92 +294,61 @@ app.get('/api/organizers/:organizerId/reward-summary/gsheet-url', authenticateTo
     }
 
     try {
-        // --- Google API 認証 ---
-        const auth = new google.auth.GoogleAuth({
-            keyFile: path.join(__dirname, 'credentials.json'),
-            scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file'],
-        });
-        const sheets = google.sheets({ version: 'v4', auth });
-        const drive = google.drive({ version: 'v3', auth });
-
-        // --- データベースからデータを取得 ---
-        const [eventRows] = await pool.query(
-            'SELECT event_name, price, reward_type FROM events WHERE event_id = ? AND organizer_id = ?',
-            [event_id, targetOrganizerId]
-        );
-        if (eventRows.length === 0) {
-            return res.status(404).json({ message: 'イベントが見つからないか、アクセス権限がありません。' });
-        }
-        const event = eventRows[0];
-
+        // 支払金額を計算するロジックは既存の /reward-summary API と同じ
         const sql = `
-            SELECT u.user_name, ur.reward_type, ur.reward_value, ur.quantity, ur.is_claimed
-            FROM user_rewards ur JOIN users u ON ur.user_id = u.user_id
-            WHERE ur.event_id = ? ORDER BY u.user_name ASC`;
-        const [summaryRows] = await pool.query(sql, [event_id]);
+            SELECT
+                e.event_name, e.price, u.user_name, ur.reward_type,
+                ur.reward_value, ur.quantity, ur.is_claimed
+            FROM user_rewards ur
+            JOIN events e ON ur.event_id = e.event_id
+            JOIN users u ON ur.user_id = u.user_id
+            WHERE e.organizer_id = ? AND ur.event_id = ?
+            ORDER BY u.user_name ASC
+        `;
+        const [rows] = await pool.query(sql, [targetOrganizerId, event_id]);
 
-        // --- スプレッドシート用のデータ整形 ---
-        const manualLine = '入場者が画面上で交換ボタンを押したことを目視で確認してください。';
-        let headers = ['紹介ユーザー名', '特典タイプ', '特典内容', '数量', '状態'];
-        if (event.reward_type === 'discount') {
-            headers.push('通常価格', '支払金額(計算式)');
+        if (rows.length === 0) {
+             return res.status(404).json({ message: '対象のデータが見つかりません。' });
         }
 
-        const dataForSheet = summaryRows.map((row, index) => {
-            const status = row.is_claimed ? '交換済み' : '未交換';
-            const rowNum = index + 3;
-            let rowData = [row.user_name, row.reward_type, row.reward_value, row.quantity, status];
-            if (row.reward_type === 'discount') {
-                const formula = `=F${rowNum}-(F${rowNum}*(C${rowNum}/100)*D${rowNum})`;
-                rowData.push(event.price, { formulaValue: formula });
+        const summaryWithPaymentPrice = rows.map(item => {
+            if (item.reward_type === 'discount') {
+                const priceNum = parseFloat(item.price);
+                const discountRate = parseFloat(item.reward_value);
+                const quantityNum = parseInt(item.quantity, 10);
+                const totalDiscountAmount = priceNum * (discountRate / 100) * quantityNum;
+                const payment_price = Math.max(0, Math.floor(priceNum - totalDiscountAmount));
+                return { ...item, payment_price };
             }
-            return { values: rowData.map(cell => (typeof cell === 'object' && cell.formulaValue) ? { userEnteredValue: { formulaValue: cell.formulaValue } } : { userEnteredValue: { stringValue: String(cell) } }) };
+            return item;
         });
 
-        // --- Google Sheets API 実行 ---
-        // 1. 新しいスプレッドシートを作成
-        const spreadsheet = await sheets.spreadsheets.create({
-            resource: { properties: { title: `${event.event_name} 特典サマリー` } },
-            fields: 'spreadsheetId,spreadsheetUrl',
-        });
-        const spreadsheetId = spreadsheet.data.spreadsheetId;
-        const spreadsheetUrl = spreadsheet.data.spreadsheetUrl;
-
-        // 2. ★★★ 権限を「リンクを知っている全員が閲覧可」に変更 ★★★
-        await drive.permissions.create({
-            fileId: spreadsheetId,
-            requestBody: {
-                role: 'reader',
-                type: 'anyone', // 'user'から'anyone'に変更
-            },
-        });
-        
-        // 3. 作成したシートを指定のDriveフォルダに移動
-        await drive.files.update({
-            fileId: spreadsheetId,
-            addParents: process.env.GOOGLE_DRIVE_FOLDER_ID,
-            removeParents: 'root',
-            fields: 'id, parents',
-        });
-        
-        // 4. データをシートに書き込み
-        await sheets.spreadsheets.values.batchUpdate({
-            spreadsheetId,
-            resource: {
-                data: [
-                    { range: 'A1', values: [[manualLine]] },
-                    { range: 'A2', values: [headers] },
-                    { range: 'A3', values: dataForSheet.map(r => r.values.map(c => c.userEnteredValue.formulaValue || c.userEnteredValue.stringValue)) }
-                ],
-                valueInputOption: 'USER_ENTERED'
-            }
+        // CSV文字列の生成
+        const header = ['イベント名', '紹介ユーザー名', '特典タイプ', '特典内容', '数量', '状態', '元価格', '支払額'];
+        const csvRows = summaryWithPaymentPrice.map(row => {
+            const isDiscount = row.reward_type === 'discount';
+            return [
+                `"${row.event_name}"`,
+                `"${row.user_name}"`,
+                `"${row.reward_type}"`,
+                `"${row.reward_value}"`,
+                row.quantity,
+                row.is_claimed ? '"交換済み"' : '"未交換"',
+                isDiscount ? `"${row.price}"` : '""',
+                isDiscount ? `"${row.payment_price}"` : '""'
+            ].join(',');
         });
 
-        res.json({ sheetUrl: spreadsheetUrl });
+        const csvString = [header.join(','), ...csvRows].join('\n');
+
+        // レスポンスヘッダーを設定してCSVを送信
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="reward_summary.csv"');
+        res.status(200).end(csvString);
 
     } catch (error) {
-        console.error('Error with Google Sheets API:', error);
-        res.status(500).json({ message: 'スプレッドシートの作成中にエラーが発生しました。' });
+        console.error('Error generating CSV:', error);
+        res.status(500).json({ message: 'CSVの生成中にエラーが発生しました。' });
     }
 });
 
@@ -942,9 +912,11 @@ app.get('/api/organizers/:organizerId/reward-summary', authenticateToken, async 
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+        // SQLクエリに e.price を追加
         let sql = `
             SELECT
                 e.event_name,
+                e.price,
                 u.user_name,
                 ur.reward_type,
                 ur.reward_value,
@@ -964,7 +936,25 @@ app.get('/api/organizers/:organizerId/reward-summary', authenticateToken, async 
         sql += ' ORDER BY e.date DESC, u.user_name ASC';
 
         const [rows] = await pool.query(sql, params);
-        res.json(rows);
+
+        // ★★★ 支払金額を計算する処理を追加 ★★★
+        const summaryWithPaymentPrice = rows.map(item => {
+            if (item.reward_type === 'discount') {
+                const priceNum = parseFloat(item.price);
+                const discountRate = parseFloat(item.reward_value);
+                const quantityNum = parseInt(item.quantity, 10);
+
+                // 割引額を計算 (価格 * (割引率/100) * 特典数量)
+                const totalDiscountAmount = priceNum * (discountRate / 100) * quantityNum;
+                // 支払額を計算 (価格 - 割引額)、0円未満にならないようにする
+                const payment_price = Math.max(0, Math.floor(priceNum - totalDiscountAmount));
+
+                return { ...item, payment_price };
+            }
+            return item;
+        });
+
+        res.json(summaryWithPaymentPrice);
 
     } catch (error) {
         console.error('Get organizer reward summary error:', error);

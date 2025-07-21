@@ -46,10 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filterEventSelect) {
         filterEventSelect.addEventListener('change', () => {
             loadRewardSummary();
-            // イベント選択に応じてボタンの有効/無効を切り替え
-            if (openSheetButton) {
-                openSheetButton.disabled = !filterEventSelect.value;
-            }
         });
     }
     // スプレッドシートボタンのクリックイベント
@@ -63,44 +59,65 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- 関数定義 ---
 
 /**
- * スプレッドシートで開く処理
+ * CSVダウンロード処理
  */
 async function handleOpenSheet() {
     if (!filterEventSelect || !filterEventSelect.value) {
-        showMessage('スプレッドシートで開くには、まずイベントを選択してください。');
-        setTimeout(hideMessage, 3000);
+        // イベントが選択されていない場合はポップアップで通知
+        alert('イベントを選択してください');
         return;
     }
 
     const eventId = filterEventSelect.value;
-    const apiUrl = `/api/organizers/${currentOrganizerId}/reward-summary/gsheet-url?event_id=${eventId}`;
+    // APIのエンドポイントをCSVダウンロード用に変更
+    const apiUrl = `/api/organizers/${currentOrganizerId}/reward-summary/csv?event_id=${eventId}`;
 
     // ボタンを一時的に無効化し、ローディング表示
     openSheetButton.disabled = true;
-    openSheetButton.textContent = 'URL生成中...';
+    openSheetButton.textContent = 'CSV生成中...';
 
     try {
         const response = await fetch(apiUrl);
-        const data = await response.json();
 
-        if (response.ok) {
-            // 新しいタブでGoogleスプレッドシートを開く
-            window.open(data.sheetUrl, '_blank');
-        } else {
-            throw new Error(data.message || 'URLの生成に失敗しました。');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'CSVの生成に失敗しました。');
         }
+
+        // ファイル名にイベント名を含める
+        const eventName = filterEventSelect.options[filterEventSelect.selectedIndex].text;
+        const fileName = `reward-summary-${eventName.replace(/\s+/g, '_')}.csv`;
+
+        // レスポンスからCSVデータを取得
+        const csvData = await response.text();
+
+        // BOM（バイトオーダーマーク）を追加して文字化けを防ぐ
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvData], { type: 'text/csv;charset=utf-8;' });
+
+        // ダウンロード用のリンクを作成してクリック
+        const link = document.createElement("a");
+        if (link.download !== undefined) { // feature detection
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
     } catch (error) {
-        console.error('Error fetching spreadsheet URL:', error);
+        console.error('Error fetching CSV data:', error);
         showMessage(error.message);
         setTimeout(hideMessage, 5000);
     } finally {
         // ボタンの状態を元に戻す
         openSheetButton.disabled = false;
-        openSheetButton.textContent = 'スプレッドシートで開く';
+        openSheetButton.textContent = 'CSVダウンロード';
     }
 }
 
-// (以下、変更のない他の関数)
 function showMessage(text, type = 'error') {
     if (!messageDiv) return;
     messageDiv.textContent = text;
@@ -185,6 +202,9 @@ async function loadOrganizerEvents() {
         const events = await response.json();
         displayOrganizerEvents(events);
         populateEventFilter(events);
+        if (openSheetButton && events && events.length > 0) {
+            openSheetButton.disabled = false;
+        }
         loadRewardSummary();
     } catch (error) {
         console.error('Error loading organizer events:', error);
@@ -278,9 +298,21 @@ function displayRewardSummary(summary) {
         const summaryItemCard = document.createElement('div');
         summaryItemCard.className = 'summary-item-card';
         let rewardText = '';
+        // ★★★ 支払金額表示用のHTML変数を追加 ★★★
+        let paymentInfoHtml = '';
+
         switch (item.reward_type) {
             case 'discount':
                 rewardText = `割引 ${item.reward_value}%`;
+                // ★★★ 割引の場合、支払金額と元価格の表示を生成 ★★★
+                if (typeof item.payment_price !== 'undefined') {
+                    paymentInfoHtml = `
+                        <div class="summary-card-label">支払額</div>
+                        <div class="summary-card-value payment-price bold">¥${Number(item.payment_price).toLocaleString()}</div>
+                        <div class="summary-card-label">元価格</div>
+                        <div class="summary-card-value original-price">¥${Number(item.price).toLocaleString()}</div>
+                    `;
+                }
                 break;
             case 'goods':
                 rewardText = `グッズ: ${item.reward_value}`;
@@ -291,6 +323,8 @@ function displayRewardSummary(summary) {
         }
         const statusText = item.is_claimed ? '交換済み' : '未交換';
         const statusClass = item.is_claimed ? 'claimed' : 'unclaimed';
+
+        // ★★★ 生成した支払金額HTMLを描画部分に追加 ★★★
         summaryItemCard.innerHTML = `
             <div class="summary-card-row">
                 <div class="summary-card-label">イベント名</div>
@@ -306,6 +340,7 @@ function displayRewardSummary(summary) {
                 <div class="summary-card-label">状態</div>
                 <div class="summary-card-value status ${statusClass}">${statusText}</div>
             </div>
+            ${paymentInfoHtml ? `<div class="summary-card-row payment-row">${paymentInfoHtml}</div>` : ''}
         `;
         rewardSummaryListDiv.appendChild(summaryItemCard);
     });
