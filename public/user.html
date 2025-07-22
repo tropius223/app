@@ -11,14 +11,24 @@
 <body>
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>ゲストコード：<br><span id="userName"></span></h1>
+            <h1><span id="userName"></span></h1>
             <a href="#" id="logoutButton" class="secondary">
                 <img src="https://img.icons8.com/?size=100&id=XWfIX8KKOkup&format=png&color=000000" alt="ログアウト" style="width: 24px; height: 24px;">
             </a>
         </div>
 
-
         <div id="message" class="message hidden"></div>
+
+         <section style="margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+            <a href="#" id="show-username-form-btn" class="change-username-link">ユーザーネームを変更する</a>
+            <div id="username-edit-area" style="display: none; margin-top: 10px;">
+                <div id="update-username-form">
+                    <label for="new-username" style="display: block; margin-bottom: 5px;font-size: 0.5em;">特典獲得後の変更は、会場での受け渡しがスムーズに行われなくなる場合があります。</label>
+                    <input type="text" id="new-username" name="new-username" required placeholder="新しいユーザーネーム" style="width: calc(100% - 80px); padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <button id="save-username-btn" style="padding: 8px 15px; border-radius: 4px; border: none; background-color: #007bff; color: white; cursor: pointer;">保存</button>
+                </div>
+            </div>
+        </section>
 
         <section>
             <h2>開催予定のイベント</h2>

@@ -6,6 +6,7 @@ USE event_system;
 -- 既存のテーブルを依存関係を考慮して削除し、クリーンな状態から再作成する
 DROP TABLE IF EXISTS click_logs;
 DROP TABLE IF EXISTS user_rewards;
+DROP TABLE IF EXISTS username_history;
 DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS organizers;
@@ -32,7 +33,7 @@ CREATE TABLE organizers (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- events テーブル (新しい特典の仕様)
+-- events テーブル
 CREATE TABLE events (
     event_id INT AUTO_INCREMENT PRIMARY KEY,
     organizer_id INT NOT NULL,
@@ -51,7 +52,7 @@ CREATE TABLE events (
     FOREIGN KEY (organizer_id) REFERENCES organizers(organizer_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- user_rewards テーブル (新規)
+-- user_rewards テーブル
 CREATE TABLE user_rewards (
     user_reward_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -76,6 +77,16 @@ CREATE TABLE click_logs (
     FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     UNIQUE KEY `uniq_click` (`event_id`, `user_id`, `ip_address`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ユーザーネーム変更履歴テーブル
+CREATE TABLE username_history (
+    history_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    old_username VARCHAR(100) NOT NULL,
+    new_username VARCHAR(100) NOT NULL,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- インデックス

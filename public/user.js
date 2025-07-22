@@ -20,6 +20,62 @@ document.addEventListener('DOMContentLoaded', () => {
     messageDiv = document.getElementById('message');
     qrModal = document.getElementById('qrModal');
     qrCodeContainer = document.getElementById('qrCodeContainer');
+    const newUsernameInput = document.getElementById('new-username');
+    const saveUsernameBtn = document.getElementById('save-username-btn');
+    const showUsernameFormBtn = document.getElementById('show-username-form-btn');
+    const usernameEditArea = document.getElementById('username-edit-area');
+
+    // 「ユーザーネームを変更する」リンクのクリックイベント
+    if (showUsernameFormBtn) {
+        showUsernameFormBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // リンクのデフォルト動作をキャンセル
+            showUsernameFormBtn.style.display = 'none'; // リンクを隠す
+            usernameEditArea.style.display = 'block'; // 入力フォームを表示
+            newUsernameInput.focus(); // 入力欄にフォーカスを当てる
+        });
+    }
+
+    // ユーザーネーム保存ボタンのイベントリスナー
+    if (saveUsernameBtn) {
+        saveUsernameBtn.addEventListener('click', () => {
+            const newUsername = newUsernameInput.value.trim();
+            if (!newUsername) {
+                showMessage('新しいユーザーネームを入力してください。', 'error');
+                return;
+            }
+
+            // サーバーに更新リクエストを送信
+            fetch('/api/user/update-username', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ newUsername: newUsername }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message) });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    userNameSpan.textContent = data.newUsername;
+                    newUsernameInput.value = '';
+                    showMessage(data.message, 'success');
+                    // 成功したらフォームを閉じてリンクを再表示
+                    usernameEditArea.style.display = 'none';
+                    showUsernameFormBtn.style.display = 'block';
+                } else {
+                    showMessage(data.message || '更新に失敗しました。', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('更新エラー:', error);
+                showMessage(error.message || '更新中にエラーが発生しました。', 'error');
+            });
+        });
+    }
 
     // ログアウトボタンのイベントリスナー設定
     if (logoutButton) {

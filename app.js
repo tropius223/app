@@ -235,6 +235,7 @@ try {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
+
 // --- Multer 設定 ---
 const uploadDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadDir)){ try { fs.mkdirSync(uploadDir, { recursive: true }); console.log(`Created upload directory: ${uploadDir}`); } catch(err){ console.error(`Error creating upload directory: ${uploadDir}`, err); process.exit(1); } } else { console.log(`Upload directory exists: ${uploadDir}`); }
@@ -898,8 +899,60 @@ app.post('/api/organizers/:organizerId/events', authenticateToken, upload.single
     }
 });
 
+//ユーザーネーム変更API
+app.post('/api/user/update-username', authenticateToken, async (req, res) => {
+     const userId = req.user.id;
+    const { newUsername } = req.body;
+
+    if (!newUsername || newUsername.trim().length === 0) {
+        return res.status(400).json({ success: false, message: '新しいユーザーネームを入力してください。' });
+    }
+    if (newUsername.length > 100) {
+        return res.status(400).json({ success: false, message: 'ユーザーネームは100文字以内で入力してください。' });
+    }
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [users] = await connection.query('SELECT user_name FROM users WHERE user_id = ?', [userId]);
+        if (users.length === 0) {
+            throw new Error('ユーザーが見つかりません。');
+        }
+        const oldUsername = users[0].user_name;
+
+        if (oldUsername === newUsername) {
+            await connection.commit();
+            return res.json({ success: true, message: 'ユーザーネームは既に設定されています。', newUsername: newUsername });
+        }
+
+        await connection.query('UPDATE users SET user_name = ? WHERE user_id = ?', [newUsername, userId]);
+
+        await connection.query(
+            'INSERT INTO username_history (user_id, old_username, new_username) VALUES (?, ?, ?)',
+            [userId, oldUsername, newUsername]
+        );
+
+        await connection.commit();
+
+        req.user.user_name = newUsername;
+        req.session.save(err => {
+            if (err) {
+                console.error('セッションの保存に失敗しました:', err);
+            }
+            res.json({ success: true, message: 'ユーザーネームが更新されました。', newUsername: newUsername });
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        console.error('ユーザーネーム更新エラー:', error);
+        res.status(500).json({ success: false, message: 'サーバーエラーが発生しました。' });
+    } finally {
+        connection.release();
+    }
+});
+
 // --- 【修正】オーガナイザー向け特典状況確認 API ---
-// /api/organizers/:organizerId/discount-summary をこのAPIに置き換えます。
 app.get('/api/organizers/:organizerId/reward-summary', authenticateToken, async (req, res) => {
     const targetOrganizerId = parseInt(req.params.organizerId, 10);
     if (req.user.type !== 'organizer' || req.user.id !== targetOrganizerId) {
